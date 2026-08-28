@@ -46,6 +46,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "prototype": "npm --prefix prototype run dev",
     "build": "expo export --platform all --output-dir dist",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",

@@ -8,6 +8,7 @@
 
 - `docs/requirements.md` — 食事管理アプリの要件定義書
 - `docs/tech-stack.md` — 技術構成
+- `docs/git-workflow.md` — Git運用ルール
 
 ## 開発環境
 
@@ -47,9 +48,8 @@ make build
 ## ブラウザ版UIプロトタイプ
 
 ```bash
-cd prototype
-npm ci
-npm run dev
+npm --prefix prototype ci
+npm run prototype
 ```
 
 プロトタイプの詳細は `prototype/README.md` を参照してください。
