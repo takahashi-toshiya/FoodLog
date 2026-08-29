@@ -1,17 +1,5 @@
-import { Text, View, StyleSheet } from "react-native";
+import { TodayScreen } from "@/meals/screens/TodayScreen";
 
-export default function Index() {
-  return (
-    <View style={styles.container}>
-      <Text>FoodLog</Text>
-    </View>
-  );
+export default function TodayRoute() {
+  return <TodayScreen />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

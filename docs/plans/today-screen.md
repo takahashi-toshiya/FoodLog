@@ -148,7 +148,11 @@ src/
     │   └── MealSection.tsx
     ├── fixtures/
     │   └── mealEntries.ts
-    ├── model/
+    ├── constants/
+    │   └── meal-types.ts
+    ├── services/
+    │   └── nutrition.ts
+    ├── types/
     │   ├── meal.ts
     │   └── nutrition.ts
     └── screens/
@@ -156,8 +160,10 @@ src/
 
 tests/
 └── meals/
-    ├── nutrition.test.ts
-    └── TodayScreen.test.tsx
+    ├── screens/
+    │   └── TodayScreen.test.tsx
+    └── services/
+        └── nutrition.test.ts
 ```
 
 実装時にファイルが小さすぎる場合は統合してよい。ファイル数を増やすこと自体を目的にしない。
@@ -206,10 +212,11 @@ tests/
 - Expo Goで実機確認できる
 - 対象外の機能が実装に混ざっていない
 
-## 実装前に確認する事項
+## 実装時の決定
 
-1. 最初の実装に下部タブバーの見た目を含めるか
-2. 日付選択はプロトタイプどおり前後5日表示でよいか
-3. 円形のカロリー進捗を初回から再現するか、数値表示を先に完成させるか
-4. 仮データの日付を固定せず、実行日を基準に生成してよいか
-5. 食事追加ボタンを押したとき、今回は無反応にするか「未実装」と表示するか
+- 下部タブバーの見た目を初回実装に含める
+- 日付選択は、選択日を中心に前後2日ずつ表示する
+- 円形のカロリー進捗を初回から再現する
+- 仮データは実行日を基準に生成する
+- 食事追加、カレンダー、未実装タブは今回遷移させない
+- 円形進捗の描画にはExpo SDKと互換性のある `react-native-svg` を使用する
