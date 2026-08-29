@@ -33,8 +33,12 @@ export function AppTabBar({ activeTab, onSelectTab }: AppTabBarProps) {
             onPress={() => onSelectTab?.(tab.key)}
             style={styles.tab}
           >
-            <Text style={[styles.icon, isActive && styles.active]}>{tab.icon}</Text>
-            <Text style={[styles.label, isActive && styles.active]}>{tab.label}</Text>
+            <Text style={[styles.icon, isActive && styles.active]}>
+              {tab.icon}
+            </Text>
+            <Text style={[styles.label, isActive && styles.active]}>
+              {tab.label}
+            </Text>
           </Pressable>
         );
       })}

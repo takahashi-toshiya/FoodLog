@@ -44,15 +44,24 @@ function MealEntryRow({ entry }: MealEntryRowProps) {
   );
 }
 
-export function MealSection({ mealType, entries, onAddMeal }: MealSectionProps) {
+export function MealSection({
+  mealType,
+  entries,
+  onAddMeal,
+}: MealSectionProps) {
   const label = MEAL_TYPE_LABELS[mealType];
-  const totalCalories = entries.reduce((total, entry) => total + entry.calories, 0);
+  const totalCalories = entries.reduce(
+    (total, entry) => total + entry.calories,
+    0,
+  );
 
   return (
     <View style={styles.section}>
       <View style={styles.header}>
         <Text style={styles.headerLabel}>{label}</Text>
-        <Text style={styles.headerCalories}>{totalCalories.toLocaleString()} kcal</Text>
+        <Text style={styles.headerCalories}>
+          {totalCalories.toLocaleString()} kcal
+        </Text>
       </View>
 
       {entries.length > 0 ? (

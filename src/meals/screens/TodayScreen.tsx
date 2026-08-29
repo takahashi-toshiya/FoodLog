@@ -6,7 +6,10 @@ import { DailyNutritionSummary } from "@/meals/components/DailyNutritionSummary"
 import { DateSelector } from "@/meals/components/DateSelector";
 import { MealSection } from "@/meals/components/MealSection";
 import { MEAL_TYPES } from "@/meals/constants/meal-types";
-import { createMealEntryFixtures, DEFAULT_NUTRITION_GOAL } from "@/meals/fixtures/mealEntries";
+import {
+  createMealEntryFixtures,
+  DEFAULT_NUTRITION_GOAL,
+} from "@/meals/fixtures/mealEntries";
 import { calculateNutritionTotals } from "@/meals/services/nutrition";
 import { AppTabBar } from "@/shared/components/AppTabBar";
 import { colors } from "@/shared/theme/colors";
@@ -15,9 +18,14 @@ import { formatLongDate, toDateKey } from "@/shared/utils/date";
 export function TodayScreen() {
   const [today] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState(today);
-  const mealEntries = useMemo(() => createMealEntryFixtures(toDateKey(today)), [today]);
+  const mealEntries = useMemo(
+    () => createMealEntryFixtures(toDateKey(today)),
+    [today],
+  );
   const selectedDateKey = toDateKey(selectedDate);
-  const selectedEntries = mealEntries.filter((entry) => entry.date === selectedDateKey);
+  const selectedEntries = mealEntries.filter(
+    (entry) => entry.date === selectedDateKey,
+  );
   const totals = calculateNutritionTotals(selectedEntries);
 
   return (
@@ -28,15 +36,28 @@ export function TodayScreen() {
             <Text style={styles.eyebrow}>今日の記録</Text>
             <Text style={styles.title}>{formatLongDate(selectedDate)}</Text>
           </View>
-          <Pressable accessibilityLabel="カレンダーを開く" style={styles.calendarButton}>
+          <Pressable
+            accessibilityLabel="カレンダーを開く"
+            style={styles.calendarButton}
+          >
             <Text style={styles.calendarIcon}>▦</Text>
           </Pressable>
         </View>
 
-        <DateSelector onSelectDate={setSelectedDate} selectedDate={selectedDate} />
+        <DateSelector
+          onSelectDate={setSelectedDate}
+          selectedDate={selectedDate}
+        />
 
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} style={styles.scroll}>
-          <DailyNutritionSummary goal={DEFAULT_NUTRITION_GOAL} totals={totals} />
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          style={styles.scroll}
+        >
+          <DailyNutritionSummary
+            goal={DEFAULT_NUTRITION_GOAL}
+            totals={totals}
+          />
 
           <View style={styles.sectionTitle}>
             <Text style={styles.sectionTitleText}>食事</Text>
@@ -44,7 +65,13 @@ export function TodayScreen() {
           </View>
 
           {MEAL_TYPES.map((mealType) => (
-            <MealSection entries={selectedEntries.filter((entry) => entry.mealType === mealType)} key={mealType} mealType={mealType} />
+            <MealSection
+              entries={selectedEntries.filter(
+                (entry) => entry.mealType === mealType,
+              )}
+              key={mealType}
+              mealType={mealType}
+            />
           ))}
         </ScrollView>
 

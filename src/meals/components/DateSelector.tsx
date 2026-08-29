@@ -10,7 +10,10 @@ type DateSelectorProps = {
 
 const DATE_OFFSETS = [-2, -1, 0, 1, 2];
 
-export function DateSelector({ selectedDate, onSelectDate }: DateSelectorProps) {
+export function DateSelector({
+  selectedDate,
+  onSelectDate,
+}: DateSelectorProps) {
   const selectedDateKey = toDateKey(selectedDate);
 
   return (
@@ -36,7 +39,9 @@ export function DateSelector({ selectedDate, onSelectDate }: DateSelectorProps) 
             onPress={() => onSelectDate(date)}
             style={[styles.date, isSelected && styles.selectedDate]}
           >
-            <Text style={[styles.dateText, isSelected && styles.selectedDateText]}>
+            <Text
+              style={[styles.dateText, isSelected && styles.selectedDateText]}
+            >
               {formatShortDate(date)}
             </Text>
           </Pressable>

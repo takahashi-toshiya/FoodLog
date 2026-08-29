@@ -39,6 +39,7 @@
     "eslint-config-expo": "~10.0.0",
     "jest": "~29.7.0",
     "jest-expo": "~54.0.18",
+    "prettier": "^3.9.6",
     "typescript": "~5.9.2"
   },
   "scripts": {
@@ -49,6 +50,8 @@
     "web": "expo start --web",
     "prototype": "npm --prefix prototype run dev",
     "build": "expo export --platform all --output-dir dist",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\"",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "test": "jest --runInBand --no-watchman",

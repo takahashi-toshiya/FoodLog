@@ -26,7 +26,13 @@ const RING_STROKE = 10;
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
-function MacroProgressRow({ label, shortLabel, current, goal, color }: MacroProgressRowProps) {
+function MacroProgressRow({
+  label,
+  shortLabel,
+  current,
+  goal,
+  color,
+}: MacroProgressRowProps) {
   const progress = calculateProgress(current, goal);
 
   return (
@@ -43,14 +49,22 @@ function MacroProgressRow({ label, shortLabel, current, goal, color }: MacroProg
           </Text>
         </View>
         <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { backgroundColor: color, width: `${progress * 100}%` }]} />
+          <View
+            style={[
+              styles.progressFill,
+              { backgroundColor: color, width: `${progress * 100}%` },
+            ]}
+          />
         </View>
       </View>
     </View>
   );
 }
 
-export function DailyNutritionSummary({ totals, goal }: DailyNutritionSummaryProps) {
+export function DailyNutritionSummary({
+  totals,
+  goal,
+}: DailyNutritionSummaryProps) {
   const calorieProgress = calculateProgress(totals.calories, goal.calories);
   const strokeOffset = RING_CIRCUMFERENCE * (1 - calorieProgress);
   const remainingCalories = calculateRemaining(totals.calories, goal.calories);
@@ -58,7 +72,10 @@ export function DailyNutritionSummary({ totals, goal }: DailyNutritionSummaryPro
   return (
     <View style={styles.card}>
       <View style={styles.summaryRow}>
-        <View accessibilityLabel={`摂取カロリー ${totals.calories}、目標 ${goal.calories}`} style={styles.ringWrap}>
+        <View
+          accessibilityLabel={`摂取カロリー ${totals.calories}、目標 ${goal.calories}`}
+          style={styles.ringWrap}
+        >
           <Svg height={RING_SIZE} width={RING_SIZE}>
             <Circle
               cx={RING_SIZE / 2}
@@ -83,8 +100,12 @@ export function DailyNutritionSummary({ totals, goal }: DailyNutritionSummaryPro
             />
           </Svg>
           <View pointerEvents="none" style={styles.ringLabel}>
-            <Text style={styles.calorieValue}>{totals.calories.toLocaleString()}</Text>
-            <Text style={styles.calorieGoal}>/ {goal.calories.toLocaleString()} kcal</Text>
+            <Text style={styles.calorieValue}>
+              {totals.calories.toLocaleString()}
+            </Text>
+            <Text style={styles.calorieGoal}>
+              / {goal.calories.toLocaleString()} kcal
+            </Text>
           </View>
         </View>
 
@@ -94,16 +115,36 @@ export function DailyNutritionSummary({ totals, goal }: DailyNutritionSummaryPro
             {remainingCalories.toLocaleString()}
             <Text style={styles.remainingUnit}> kcal</Text>
           </Text>
-          <Text style={styles.paceLabel}>{remainingCalories > 0 ? "いいペースです" : "目標に到達しました"}</Text>
+          <Text style={styles.paceLabel}>
+            {remainingCalories > 0 ? "いいペースです" : "目標に到達しました"}
+          </Text>
         </View>
       </View>
 
       <View style={styles.divider} />
 
       <View style={styles.macros}>
-        <MacroProgressRow color={colors.protein} current={totals.protein} goal={goal.protein} label="たんぱく質" shortLabel="P" />
-        <MacroProgressRow color={colors.fat} current={totals.fat} goal={goal.fat} label="脂質" shortLabel="F" />
-        <MacroProgressRow color={colors.carbs} current={totals.carbs} goal={goal.carbs} label="炭水化物" shortLabel="C" />
+        <MacroProgressRow
+          color={colors.protein}
+          current={totals.protein}
+          goal={goal.protein}
+          label="たんぱく質"
+          shortLabel="P"
+        />
+        <MacroProgressRow
+          color={colors.fat}
+          current={totals.fat}
+          goal={goal.fat}
+          label="脂質"
+          shortLabel="F"
+        />
+        <MacroProgressRow
+          color={colors.carbs}
+          current={totals.carbs}
+          goal={goal.carbs}
+          label="炭水化物"
+          shortLabel="C"
+        />
       </View>
     </View>
   );

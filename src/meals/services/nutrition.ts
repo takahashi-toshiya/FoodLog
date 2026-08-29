@@ -8,7 +8,9 @@ export const EMPTY_NUTRITION: NutritionValues = {
   carbs: 0,
 };
 
-export function calculateNutritionTotals(entries: MealEntry[]): NutritionValues {
+export function calculateNutritionTotals(
+  entries: MealEntry[],
+): NutritionValues {
   return entries.reduce<NutritionValues>(
     (totals, entry) => ({
       calories: totals.calories + entry.calories,

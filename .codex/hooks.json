@@ -1,0 +1,17 @@
+{
+  "description": "FoodLog workspace quality checks.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.codex/hooks/quality-check.cjs\"",
+            "timeout": 600,
+            "statusMessage": "Formatting and checking changed source code"
+          }
+        ]
+      }
+    ]
+  }
+}
