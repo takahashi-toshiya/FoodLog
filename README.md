@@ -10,6 +10,7 @@
 - `docs/tech-stack.md` — 技術構成
 - `docs/coding-guidelines.md` — コーディング規約
 - `docs/project-structure.md` — ディレクトリ構成と責務
+- `docs/testing-guidelines.md` — テスト方針
 - `docs/git-workflow.md` — Git運用ルール
 
 ## 開発環境

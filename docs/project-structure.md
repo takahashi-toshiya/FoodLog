@@ -24,7 +24,9 @@ FoodLog/
 │   ├── meals/               # 食事記録機能
 │   │   ├── components/      # 食事機能内の表示コンポーネント
 │   │   ├── screens/         # 食事機能の画面本体
-│   │   ├── model/           # 型、計算、検証などのドメインロジック
+│   │   ├── types/           # 食事機能で共有する型定義
+│   │   ├── constants/       # 食事区分などの固定値
+│   │   ├── services/        # 食事機能固有のビジネスロジック
 │   │   ├── storage/         # 食事データの保存境界と実装
 │   │   └── fixtures/        # 開発・テスト用の仮データ
 │   ├── foods/               # よく使う食品とセット機能
@@ -32,7 +34,7 @@ FoodLog/
 │   └── shared/              # 複数機能で共有するコード
 │       ├── components/      # 共通UI
 │       ├── theme/           # 色、余白、文字スタイル
-│       └── utils/           # 責務が明確な汎用処理
+│       └── utils/           # 日付操作など、責務が明確な汎用処理
 └── tests/                   # アプリコードに対応するテスト
 ```
 
@@ -52,7 +54,9 @@ FoodLog/
 
 - `components/`：その機能だけで使用する表示部品
 - `screens/`：画面全体の状態と構成
-- `model/`：型、計算、検証、変換
+- `types/`：その機能内で共有する型定義だけ
+- `constants/`：固定の選択肢やラベル
+- `services/`：計算、検証、分類などのビジネスロジック
 - `storage/`：保存先に依存しないインターフェースと保存実装
 - `fixtures/`：プロトタイプ確認用の仮データ
 
@@ -64,10 +68,33 @@ FoodLog/
 - 将来使いそうという理由だけで機能固有のコードを移さない
 - `utils/` のファイル名は、日付処理や数値表示など責務が分かる名前にする
 
+### `types/`、`services/`、`shared/utils/` の境界
+
+`types/` には型定義だけを置く。
+
+- `MealEntry` や `MealType` など、その機能内で共有する型
+- コンポーネント専用のProps型は含めず、利用するコンポーネントと同じファイルに置く
+
+`services/` には、画面や保存先がなくてもFoodLogの機能として意味を持つ処理を置く。
+
+- PFCとカロリーの計算
+- 食事入力の検証
+- 食事区分ごとの分類
+
+API通信と端末内の保存処理は、それぞれ `api/` と `storage/` に置き、`services/` へ含めない。
+
+`shared/utils/` には、FoodLog固有ではない汎用的な処理を置く。
+
+- 日付の加減算
+- 日付キーへの変換
+- 日付や数値の表示整形
+
+機能固有の処理を `shared/utils/` へ移さず、対応する機能の `services/` に置く。
+
 ### `tests/`
 
 - 原則として `src/` の機能構成に対応させる
-- 例：`src/meals/model/nutrition.ts` に対するテストは `tests/meals/model/nutrition.test.ts`
+- 例：`src/meals/services/nutrition.ts` に対するテストは `tests/meals/services/nutrition.test.ts`
 - フレームワーク上、実装の近くに置く方が明確な場合はコロケーションも認める
 
 ## 依存関係の方向
@@ -77,13 +104,13 @@ src/app
   ↓
 機能のscreens
   ↓
-機能のcomponents / model / storage
+機能のcomponents / services / storage
   ↓
 src/shared
 ```
 
 - `shared/` から特定の機能へ依存しない
-- `model/` から画面やReact NativeのUIへ依存しない
+- `services/` から画面やReact NativeのUIへ依存しない
 - 表示コンポーネントから具体的なDB実装を直接呼ばない
 - 機能間でデータが必要な場合は、共有すべき責務を確認してから接続する
 
