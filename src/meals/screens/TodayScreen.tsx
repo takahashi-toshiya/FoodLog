@@ -11,7 +11,6 @@ import {
   DEFAULT_NUTRITION_GOAL,
 } from "@/meals/fixtures/mealEntries";
 import { calculateNutritionTotals } from "@/meals/services/nutrition";
-import { AppTabBar } from "@/shared/components/AppTabBar";
 import { colors } from "@/shared/theme/colors";
 import { formatLongDate, toDateKey } from "@/shared/utils/date";
 
@@ -29,7 +28,7 @@ export function TodayScreen() {
   const totals = calculateNutritionTotals(selectedEntries);
 
   return (
-    <SafeAreaView edges={["top", "bottom"]} style={styles.safeArea}>
+    <SafeAreaView edges={["top"]} style={styles.safeArea}>
       <View style={styles.screen}>
         <View style={styles.header}>
           <View>
@@ -78,8 +77,6 @@ export function TodayScreen() {
         <Pressable accessibilityLabel="食事を追加" style={styles.addButton}>
           <Text style={styles.addButtonText}>＋ 食事を追加</Text>
         </Pressable>
-
-        <AppTabBar activeTab="today" />
       </View>
     </SafeAreaView>
   );
@@ -161,7 +158,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: colors.primary,
     borderRadius: 18,
-    bottom: 82,
+    bottom: 16,
     minHeight: 48,
     justifyContent: "center",
     paddingHorizontal: 18,

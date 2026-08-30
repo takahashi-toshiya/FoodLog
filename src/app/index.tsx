@@ -1,5 +1,5 @@
-import { TodayScreen } from "@/meals/screens/TodayScreen";
+import { Redirect } from "expo-router";
 
-export default function TodayRoute() {
-  return <TodayScreen />;
+export default function IndexRoute() {
+  return <Redirect href="/today" />;
 }

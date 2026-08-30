@@ -1,9 +1,12 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors } from "@/shared/theme/colors";
 
+export type AppTabKey = "today" | "library" | "settings";
+
 type Tab = {
-  key: "today" | "library" | "settings";
+  key: AppTabKey;
   icon: string;
   label: string;
 };
@@ -15,40 +18,45 @@ const TABS: Tab[] = [
 ];
 
 type AppTabBarProps = {
-  activeTab: Tab["key"];
-  onSelectTab?: (tab: Tab["key"]) => void;
+  activeTab: AppTabKey;
+  onSelectTab?: (tab: AppTabKey) => void;
 };
 
 export function AppTabBar({ activeTab, onSelectTab }: AppTabBarProps) {
   return (
-    <View accessibilityRole="tablist" style={styles.container}>
-      {TABS.map((tab) => {
-        const isActive = tab.key === activeTab;
+    <SafeAreaView edges={["bottom"]} style={styles.safeArea}>
+      <View accessibilityRole="tablist" style={styles.container}>
+        {TABS.map((tab) => {
+          const isActive = tab.key === activeTab;
 
-        return (
-          <Pressable
-            accessibilityRole="tab"
-            accessibilityState={{ selected: isActive }}
-            key={tab.key}
-            onPress={() => onSelectTab?.(tab.key)}
-            style={styles.tab}
-          >
-            <Text style={[styles.icon, isActive && styles.active]}>
-              {tab.icon}
-            </Text>
-            <Text style={[styles.label, isActive && styles.active]}>
-              {tab.label}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
+          return (
+            <Pressable
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              key={tab.key}
+              onPress={() => onSelectTab?.(tab.key)}
+              style={styles.tab}
+            >
+              <Text style={[styles.icon, isActive && styles.active]}>
+                {tab.icon}
+              </Text>
+              <Text style={[styles.label, isActive && styles.active]}>
+                {tab.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    backgroundColor: colors.surface,
+  },
   container: {
-    minHeight: 68,
+    minHeight: 64,
     backgroundColor: colors.surface,
     borderTopColor: colors.border,
     borderTopWidth: StyleSheet.hairlineWidth,
