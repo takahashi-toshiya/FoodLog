@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -6,26 +6,50 @@ import { DailyNutritionSummary } from "@/meals/components/DailyNutritionSummary"
 import { DateSelector } from "@/meals/components/DateSelector";
 import { MealSection } from "@/meals/components/MealSection";
 import { MEAL_TYPES } from "@/meals/constants/meal-types";
-import {
-  createMealEntryFixtures,
-  DEFAULT_NUTRITION_GOAL,
-} from "@/meals/fixtures/mealEntries";
+import { DEFAULT_NUTRITION_GOAL } from "@/meals/fixtures/mealEntries";
 import { calculateNutritionTotals } from "@/meals/services/nutrition";
+import type { MealRepository } from "@/meals/storage/MealRepository";
+import type { MealEntry, MealType } from "@/meals/types/meal";
 import { colors } from "@/shared/theme/colors";
 import { formatLongDate, toDateKey } from "@/shared/utils/date";
 
-export function TodayScreen() {
+type TodayScreenProps = {
+  repository: MealRepository;
+  refreshToken?: number;
+  onAddMeal?: (date: string, mealType?: MealType) => void;
+};
+
+export function TodayScreen({
+  repository,
+  refreshToken = 0,
+  onAddMeal,
+}: TodayScreenProps) {
   const [today] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState(today);
-  const mealEntries = useMemo(
-    () => createMealEntryFixtures(toDateKey(today)),
-    [today],
-  );
+  const [mealEntries, setMealEntries] = useState<MealEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const selectedDateKey = toDateKey(selectedDate);
-  const selectedEntries = mealEntries.filter(
-    (entry) => entry.date === selectedDateKey,
-  );
-  const totals = calculateNutritionTotals(selectedEntries);
+
+  const loadEntries = useCallback(async () => {
+    setIsLoading(true);
+    setLoadError(null);
+
+    try {
+      setMealEntries(await repository.findByDate(selectedDateKey));
+    } catch (error) {
+      console.error("食事記録の取得に失敗しました", error);
+      setLoadError("食事記録を読み込めませんでした");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [repository, selectedDateKey]);
+
+  useEffect(() => {
+    void loadEntries();
+  }, [loadEntries, refreshToken]);
+
+  const totals = calculateNutritionTotals(mealEntries);
 
   return (
     <SafeAreaView edges={["top"]} style={styles.safeArea}>
@@ -60,21 +84,40 @@ export function TodayScreen() {
 
           <View style={styles.sectionTitle}>
             <Text style={styles.sectionTitleText}>食事</Text>
-            <Text style={styles.entryCount}>{selectedEntries.length}件</Text>
+            <Text style={styles.entryCount}>{mealEntries.length}件</Text>
           </View>
 
-          {MEAL_TYPES.map((mealType) => (
-            <MealSection
-              entries={selectedEntries.filter(
-                (entry) => entry.mealType === mealType,
-              )}
-              key={mealType}
-              mealType={mealType}
-            />
-          ))}
+          {isLoading ? (
+            <Text style={styles.statusText}>食事記録を読み込んでいます</Text>
+          ) : loadError ? (
+            <View style={styles.errorState}>
+              <Text style={styles.errorText}>{loadError}</Text>
+              <Pressable
+                accessibilityLabel="食事記録を再読み込み"
+                onPress={loadEntries}
+              >
+                <Text style={styles.retryText}>再試行</Text>
+              </Pressable>
+            </View>
+          ) : (
+            MEAL_TYPES.map((mealType) => (
+              <MealSection
+                entries={mealEntries.filter(
+                  (entry) => entry.mealType === mealType,
+                )}
+                key={mealType}
+                mealType={mealType}
+                onAddMeal={() => onAddMeal?.(selectedDateKey, mealType)}
+              />
+            ))
+          )}
         </ScrollView>
 
-        <Pressable accessibilityLabel="食事を追加" style={styles.addButton}>
+        <Pressable
+          accessibilityLabel="食事を追加"
+          onPress={() => onAddMeal?.(selectedDateKey)}
+          style={styles.addButton}
+        >
           <Text style={styles.addButtonText}>＋ 食事を追加</Text>
         </Pressable>
       </View>
@@ -153,6 +196,23 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     paddingHorizontal: 7,
     paddingVertical: 3,
+  },
+  statusText: {
+    color: colors.textMuted,
+    paddingVertical: 32,
+    textAlign: "center",
+  },
+  errorState: {
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 32,
+  },
+  errorText: {
+    color: colors.textMuted,
+  },
+  retryText: {
+    color: colors.primary,
+    fontWeight: "700",
   },
   addButton: {
     alignItems: "center",

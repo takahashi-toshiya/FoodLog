@@ -8,8 +8,18 @@ export const DEFAULT_NUTRITION_GOAL: NutritionGoal = {
   carbs: 250,
 };
 
+type MealEntryFixture = Omit<
+  MealEntry,
+  | "sourceFoodId"
+  | "servingMultiplier"
+  | "calorieSource"
+  | "memo"
+  | "createdAt"
+  | "updatedAt"
+>;
+
 export function createMealEntryFixtures(today: string): MealEntry[] {
-  return [
+  const entries: MealEntryFixture[] = [
     {
       id: "oatmeal-banana",
       date: today,
@@ -51,4 +61,14 @@ export function createMealEntryFixtures(today: string): MealEntry[] {
       carbs: 4,
     },
   ];
+
+  return entries.map((entry) => ({
+    ...entry,
+    sourceFoodId: null,
+    servingMultiplier: 1,
+    calorieSource: "calculated" as const,
+    memo: null,
+    createdAt: `${today}T00:00:00.000Z`,
+    updatedAt: `${today}T00:00:00.000Z`,
+  }));
 }
