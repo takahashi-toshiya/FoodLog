@@ -10,6 +10,8 @@
 - React Native
 - Expo
 - Expo Router
+- Expo SQLite
+- Expo Crypto
 - TypeScript
 - npm
 

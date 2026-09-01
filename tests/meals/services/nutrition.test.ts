@@ -15,6 +15,12 @@ const entries: MealEntry[] = [
     protein: 20,
     fat: 10,
     carbs: 35,
+    sourceFoodId: null,
+    servingMultiplier: 1,
+    calorieSource: "calculated",
+    memo: null,
+    createdAt: "2026-08-28T00:00:00.000Z",
+    updatedAt: "2026-08-28T00:00:00.000Z",
   },
   {
     id: "2",
@@ -25,6 +31,12 @@ const entries: MealEntry[] = [
     protein: 35,
     fat: 15,
     carbs: 55,
+    sourceFoodId: null,
+    servingMultiplier: 1,
+    calorieSource: "calculated",
+    memo: null,
+    createdAt: "2026-08-28T00:00:00.000Z",
+    updatedAt: "2026-08-28T00:00:00.000Z",
   },
 ];
 
