@@ -10,6 +10,9 @@ export const FOOD_ITEM_FIXTURES: readonly FoodItem[] = [
     protein: 22,
     fat: 2,
     carbs: 4,
+    memo: null,
+    createdAt: "2026-08-30T00:00:00.000Z",
+    updatedAt: "2026-08-30T00:00:00.000Z",
   },
   {
     id: "greek-yogurt",
@@ -20,6 +23,9 @@ export const FOOD_ITEM_FIXTURES: readonly FoodItem[] = [
     protein: 10,
     fat: 0,
     carbs: 12,
+    memo: null,
+    createdAt: "2026-08-30T00:00:00.000Z",
+    updatedAt: "2026-08-30T00:00:00.000Z",
   },
   {
     id: "brown-rice",
@@ -30,5 +36,8 @@ export const FOOD_ITEM_FIXTURES: readonly FoodItem[] = [
     protein: 4,
     fat: 2,
     carbs: 53,
+    memo: null,
+    createdAt: "2026-08-30T00:00:00.000Z",
+    updatedAt: "2026-08-30T00:00:00.000Z",
   },
 ];

@@ -7,4 +7,7 @@ export type FoodItem = {
   protein: number;
   fat: number;
   carbs: number;
+  memo: string | null;
+  createdAt: string;
+  updatedAt: string;
 };

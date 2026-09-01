@@ -11,18 +11,19 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { MEAL_TYPE_LABELS, MEAL_TYPES } from "@/meals/constants/meal-types";
-import { validateMealInput } from "@/meals/services/mealInput";
-import type { MealRepository } from "@/meals/storage/MealRepository";
-import type { MealType } from "@/meals/types/meal";
-import type { MealInputErrors, MealInputValues } from "@/meals/types/mealInput";
+import {
+  FOOD_MEMO_MAX_LENGTH,
+  FOOD_NAME_MAX_LENGTH,
+  SERVING_UNIT_MAX_LENGTH,
+} from "@/foods/constants/food-input";
+import { validateFoodInput } from "@/foods/services/foodInput";
+import type { FoodRepository } from "@/foods/storage/FoodRepository";
+import type { FoodInputErrors, FoodInputValues } from "@/foods/types/foodInput";
 import { calculateCalories } from "@/shared/services/nutrition";
 import { colors } from "@/shared/theme/colors";
 
-type AddMealScreenProps = {
-  initialDate: string;
-  initialMealType: MealType;
-  repository: MealRepository;
+type AddFoodScreenProps = {
+  repository: FoodRepository;
   onCancel: () => void;
   onSaved: () => void;
 };
@@ -71,41 +72,39 @@ function TextField({
   );
 }
 
-export function AddMealScreen({
-  initialDate,
-  initialMealType,
+export function AddFoodScreen({
   repository,
   onCancel,
   onSaved,
-}: AddMealScreenProps) {
-  const [values, setValues] = useState<MealInputValues>({
-    date: initialDate,
-    mealType: initialMealType,
+}: AddFoodScreenProps) {
+  const [values, setValues] = useState<FoodInputValues>({
     name: "",
-    servingMultiplier: "1",
+    servingAmount: "1",
+    servingUnit: "食",
     protein: "",
     fat: "",
     carbs: "",
-    calorieSource: "calculated",
+    calorieMode: "calculated",
     manualCalories: "",
     memo: "",
   });
-  const [errors, setErrors] = useState<MealInputErrors>({});
+  const [errors, setErrors] = useState<FoodInputErrors>({});
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const automaticCalories = useMemo(() => {
-    const protein = Number(values.protein) || 0;
-    const fat = Number(values.fat) || 0;
-    const carbs = Number(values.carbs) || 0;
-    const multiplier = Number(values.servingMultiplier) || 0;
+  const automaticCalories = useMemo(
+    () =>
+      calculateCalories(
+        Number(values.protein) || 0,
+        Number(values.fat) || 0,
+        Number(values.carbs) || 0,
+      ),
+    [values.carbs, values.fat, values.protein],
+  );
 
-    return Math.round(calculateCalories(protein, fat, carbs) * multiplier);
-  }, [values.carbs, values.fat, values.protein, values.servingMultiplier]);
-
-  const updateValue = <Key extends keyof MealInputValues>(
+  const updateValue = <Key extends keyof FoodInputValues>(
     key: Key,
-    value: MealInputValues[Key],
+    value: FoodInputValues[Key],
   ) => {
     setValues((current) => ({ ...current, [key]: value }));
     setErrors((current) => ({ ...current, [key]: undefined }));
@@ -117,7 +116,7 @@ export function AddMealScreen({
       return;
     }
 
-    const result = validateMealInput(values);
+    const result = validateFoodInput(values);
     if (!result.isValid) {
       setErrors(result.errors);
       return;
@@ -130,8 +129,8 @@ export function AddMealScreen({
       await repository.create(result.value);
       onSaved();
     } catch (error) {
-      console.error("食事記録の保存に失敗しました", error);
-      setSaveError("食事を保存できませんでした。もう一度お試しください");
+      console.error("食品の保存に失敗しました", error);
+      setSaveError("食品を保存できませんでした。もう一度お試しください");
     } finally {
       setIsSaving(false);
     }
@@ -145,15 +144,15 @@ export function AddMealScreen({
       >
         <View style={styles.header}>
           <Pressable
-            accessibilityLabel="食事追加を閉じる"
+            accessibilityLabel="食品登録を閉じる"
             onPress={onCancel}
             style={styles.headerAction}
           >
             <Text style={styles.closeText}>×</Text>
           </Pressable>
-          <Text style={styles.title}>食事を追加</Text>
+          <Text style={styles.title}>食品を登録</Text>
           <Pressable
-            accessibilityLabel="食事を保存"
+            accessibilityLabel="食品を保存"
             disabled={isSaving}
             onPress={handleSave}
             style={styles.headerAction}
@@ -168,52 +167,38 @@ export function AddMealScreen({
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
+          <TextField
+            error={errors.name}
+            label="食品名"
+            maxLength={FOOD_NAME_MAX_LENGTH}
+            onChangeText={(value) => updateValue("name", value)}
+            placeholder="例：プロテイン"
+            value={values.name}
+          />
+
+          <Text style={styles.sectionTitle}>1回分の基準量</Text>
           <View style={styles.row}>
             <View style={styles.halfField}>
               <TextField
-                error={errors.date}
-                label="日付"
-                onChangeText={(value) => updateValue("date", value)}
-                placeholder="YYYY-MM-DD"
-                value={values.date}
+                error={errors.servingAmount}
+                keyboardType="decimal-pad"
+                label="量"
+                onChangeText={(value) => updateValue("servingAmount", value)}
+                placeholder="例：1"
+                value={values.servingAmount}
               />
             </View>
             <View style={styles.halfField}>
-              <Text style={styles.label}>食事区分</Text>
-              <View style={styles.mealTypeGrid}>
-                {MEAL_TYPES.map((mealType) => (
-                  <Pressable
-                    accessibilityLabel={`食事区分を${MEAL_TYPE_LABELS[mealType]}にする`}
-                    key={mealType}
-                    onPress={() => updateValue("mealType", mealType)}
-                    style={[
-                      styles.mealTypeButton,
-                      values.mealType === mealType && styles.selectedButton,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.mealTypeText,
-                        values.mealType === mealType &&
-                          styles.selectedButtonText,
-                      ]}
-                    >
-                      {MEAL_TYPE_LABELS[mealType]}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
+              <TextField
+                error={errors.servingUnit}
+                label="単位"
+                maxLength={SERVING_UNIT_MAX_LENGTH}
+                onChangeText={(value) => updateValue("servingUnit", value)}
+                placeholder="例：食、個、g"
+                value={values.servingUnit}
+              />
             </View>
           </View>
-
-          <TextField
-            error={errors.name}
-            label="食品・料理名"
-            maxLength={100}
-            onChangeText={(value) => updateValue("name", value)}
-            placeholder="例：鮭おにぎり"
-            value={values.name}
-          />
 
           <Text style={styles.sectionTitle}>1回分の栄養素</Text>
           <View style={styles.nutritionRow}>
@@ -237,32 +222,19 @@ export function AddMealScreen({
             ))}
           </View>
 
-          <TextField
-            error={errors.servingMultiplier}
-            keyboardType="decimal-pad"
-            label="食べた量（1回分に対する倍率）"
-            onChangeText={(value) => updateValue("servingMultiplier", value)}
-            placeholder="例：0.5"
-            value={values.servingMultiplier}
-          />
-          <Text style={styles.hint}>50%なら0.5、100%なら1、2回分なら2</Text>
-
           <View style={styles.calorieCard}>
             <View>
               <Text style={styles.calorieLabel}>カロリー</Text>
               <Text style={styles.calorieMode}>
-                {values.calorieSource === "calculated"
+                {values.calorieMode === "calculated"
                   ? "PFCから自動計算"
                   : "手動入力"}
               </Text>
             </View>
             <Text style={styles.calorieValue}>
-              {values.calorieSource === "calculated"
+              {values.calorieMode === "calculated"
                 ? automaticCalories
-                : Math.round(
-                    (Number(values.manualCalories) || 0) *
-                      (Number(values.servingMultiplier) || 0),
-                  )}{" "}
+                : Number(values.manualCalories) || 0}{" "}
               <Text style={styles.calorieUnit}>kcal</Text>
             </Text>
           </View>
@@ -271,20 +243,20 @@ export function AddMealScreen({
             accessibilityLabel="カロリー入力方法を切り替える"
             onPress={() =>
               updateValue(
-                "calorieSource",
-                values.calorieSource === "calculated" ? "manual" : "calculated",
+                "calorieMode",
+                values.calorieMode === "calculated" ? "manual" : "calculated",
               )
             }
             style={styles.switchButton}
           >
             <Text style={styles.switchButtonText}>
-              {values.calorieSource === "calculated"
+              {values.calorieMode === "calculated"
                 ? "カロリーを手動入力する"
                 : "PFCから自動計算する"}
             </Text>
           </Pressable>
 
-          {values.calorieSource === "manual" ? (
+          {values.calorieMode === "manual" ? (
             <TextField
               error={errors.manualCalories}
               keyboardType="number-pad"
@@ -298,23 +270,23 @@ export function AddMealScreen({
           <TextField
             error={errors.memo}
             label="メモ（任意）"
-            maxLength={500}
+            maxLength={FOOD_MEMO_MAX_LENGTH}
             multiline
             onChangeText={(value) => updateValue("memo", value)}
-            placeholder="量や補足など"
+            placeholder="メーカーや補足など"
             value={values.memo}
           />
 
           {saveError ? <Text style={styles.saveError}>{saveError}</Text> : null}
 
           <Pressable
-            accessibilityLabel="食事を保存する"
+            accessibilityLabel="食品を保存する"
             disabled={isSaving}
             onPress={handleSave}
             style={[styles.primaryButton, isSaving && styles.disabledButton]}
           >
             <Text style={styles.primaryButtonText}>
-              {isSaving ? "保存しています" : "食事を保存"}
+              {isSaving ? "保存しています" : "食品を保存"}
             </Text>
           </Pressable>
         </ScrollView>
@@ -350,8 +322,6 @@ const styles = StyleSheet.create({
   saveText: { color: colors.primary, fontSize: 13, fontWeight: "800" },
   disabledText: { opacity: 0.45 },
   content: { padding: 16, paddingBottom: 40 },
-  row: { flexDirection: "row", gap: 10 },
-  halfField: { flex: 1 },
   field: { marginBottom: 14 },
   label: { color: colors.textMuted, fontSize: 11, marginBottom: 7 },
   input: {
@@ -367,37 +337,16 @@ const styles = StyleSheet.create({
   inputError: { borderColor: "#C83E3E" },
   errorText: { color: "#C83E3E", fontSize: 10, marginTop: 5 },
   memoInput: { minHeight: 88, textAlignVertical: "top" },
-  mealTypeGrid: { flexDirection: "row", flexWrap: "wrap", gap: 5 },
-  mealTypeButton: {
-    alignItems: "center",
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderRadius: 9,
-    borderWidth: 1,
-    minWidth: "46%",
-    paddingHorizontal: 6,
-    paddingVertical: 7,
-  },
-  selectedButton: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  mealTypeText: { color: colors.textMuted, fontSize: 10 },
-  selectedButtonText: { color: colors.surface, fontWeight: "700" },
   sectionTitle: {
     color: colors.text,
     fontSize: 13,
     fontWeight: "800",
     marginBottom: 8,
   },
+  row: { flexDirection: "row", gap: 10 },
+  halfField: { flex: 1 },
   nutritionRow: { flexDirection: "row", gap: 8 },
   nutritionField: { flex: 1 },
-  hint: {
-    color: colors.textMuted,
-    fontSize: 10,
-    marginTop: -8,
-    marginBottom: 14,
-  },
   calorieCard: {
     alignItems: "center",
     backgroundColor: colors.primarySoft,
@@ -427,8 +376,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: colors.primary,
     borderRadius: 14,
-    minHeight: 50,
     justifyContent: "center",
+    minHeight: 50,
   },
   disabledButton: { opacity: 0.55 },
   primaryButtonText: { color: colors.surface, fontSize: 14, fontWeight: "800" },

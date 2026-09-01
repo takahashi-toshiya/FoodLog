@@ -1,8 +1,6 @@
-import {
-  calculateCalories,
-  type MealInputValues,
-  validateMealInput,
-} from "@/meals/services/mealInput";
+import { validateMealInput } from "@/meals/services/mealInput";
+import type { MealInputValues } from "@/meals/types/mealInput";
+import { calculateCalories } from "@/shared/services/nutrition";
 
 const validInput: MealInputValues = {
   date: "2026-08-30",

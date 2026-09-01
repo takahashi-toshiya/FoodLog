@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -8,23 +8,50 @@ import {
   LibraryCategoryTabs,
   type LibraryCategory,
 } from "@/foods/components/LibraryCategoryTabs";
-import { FOOD_ITEM_FIXTURES } from "@/foods/fixtures/foodItems";
 import { filterFoods } from "@/foods/services/filterFoods";
+import type { FoodRepository } from "@/foods/storage/FoodRepository";
 import type { FoodItem } from "@/foods/types/food";
 import { colors } from "@/shared/theme/colors";
 
 const CARD_COLORS = [colors.protein, colors.carbs, colors.fat];
 
 type FoodLibraryScreenProps = {
-  foods?: readonly FoodItem[];
+  repository: FoodRepository;
+  onAddFood: () => void;
+  refreshToken?: number;
 };
 
 export function FoodLibraryScreen({
-  foods = FOOD_ITEM_FIXTURES,
+  repository,
+  onAddFood,
+  refreshToken = 0,
 }: FoodLibraryScreenProps) {
   const [selectedCategory, setSelectedCategory] =
     useState<LibraryCategory>("foods");
   const [searchText, setSearchText] = useState("");
+  const [foods, setFoods] = useState<FoodItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryToken, setRetryToken] = useState(0);
+
+  const loadFoods = useCallback(async () => {
+    setIsLoading(true);
+    setLoadError(null);
+
+    try {
+      setFoods(await repository.findAll());
+    } catch (error) {
+      console.error("食品一覧の取得に失敗しました", error);
+      setLoadError("食品を読み込めませんでした");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [repository]);
+
+  useEffect(() => {
+    void loadFoods();
+  }, [loadFoods, refreshToken, retryToken]);
+
   const filteredFoods = useMemo(
     () => filterFoods(foods, searchText),
     [foods, searchText],
@@ -32,6 +59,29 @@ export function FoodLibraryScreen({
   const isSearching = searchText.trim().length > 0;
 
   function renderEmptyState() {
+    if (isLoading) {
+      return (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyTitle}>食品を読み込んでいます</Text>
+        </View>
+      );
+    }
+
+    if (loadError) {
+      return (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyTitle}>{loadError}</Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setRetryToken((current) => current + 1)}
+            style={styles.emptyAction}
+          >
+            <Text style={styles.emptyActionText}>もう一度読み込む</Text>
+          </Pressable>
+        </View>
+      );
+    }
+
     if (selectedCategory === "sets") {
       return (
         <View style={styles.emptyState}>
@@ -50,7 +100,11 @@ export function FoodLibraryScreen({
           <Text style={styles.emptyDescription}>
             よく使う食品を登録すると、ここに表示されます。
           </Text>
-          <Pressable accessibilityRole="button" style={styles.emptyAction}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={onAddFood}
+            style={styles.emptyAction}
+          >
             <Text style={styles.emptyActionText}>＋ 食品を追加</Text>
           </Pressable>
         </View>
@@ -84,6 +138,7 @@ export function FoodLibraryScreen({
           <Pressable
             accessibilityLabel="食品を追加"
             accessibilityRole="button"
+            onPress={onAddFood}
             style={styles.addButton}
           >
             <Text style={styles.addButtonText}>＋</Text>
@@ -92,7 +147,7 @@ export function FoodLibraryScreen({
 
         <FlatList
           contentContainerStyle={styles.listContent}
-          data={visibleFoods}
+          data={isLoading || loadError ? [] : visibleFoods}
           keyboardShouldPersistTaps="handled"
           keyExtractor={(food) => food.id}
           ListEmptyComponent={renderEmptyState}
