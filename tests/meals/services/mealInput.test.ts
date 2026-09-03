@@ -3,6 +3,7 @@ import type { MealInputValues } from "@/meals/types/mealInput";
 import { calculateCalories } from "@/shared/services/nutrition";
 
 const validInput: MealInputValues = {
+  sourceFoodId: null,
   date: "2026-08-30",
   mealType: "dinner",
   name: " 鶏むね肉 ",
@@ -55,6 +56,34 @@ describe("食事入力", () => {
       expect(result.value.calories).toBe(600);
     }
   });
+
+  it.each([
+    ["0.5", 145, 10, 5, 15],
+    ["1", 290, 20, 10, 30],
+    ["2", 580, 40, 20, 60],
+  ])(
+    "摂取倍率%sをカロリーとPFCへ反映する",
+    (servingMultiplier, calories, protein, fat, carbs) => {
+      const result = validateMealInput({
+        ...validInput,
+        sourceFoodId: "food-id",
+        servingMultiplier,
+      });
+
+      expect(result.isValid).toBe(true);
+      if (result.isValid) {
+        expect(result.value).toEqual(
+          expect.objectContaining({
+            sourceFoodId: "food-id",
+            calories,
+            protein,
+            fat,
+            carbs,
+          }),
+        );
+      }
+    },
+  );
 
   it("食品名、日付、倍率、栄養値の不正入力を拒否する", () => {
     const result = validateMealInput({

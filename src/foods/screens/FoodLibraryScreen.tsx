@@ -18,12 +18,14 @@ const CARD_COLORS = [colors.protein, colors.carbs, colors.fat];
 type FoodLibraryScreenProps = {
   repository: FoodRepository;
   onAddFood: () => void;
+  onSelectFood: (food: FoodItem) => void;
   refreshToken?: number;
 };
 
 export function FoodLibraryScreen({
   repository,
   onAddFood,
+  onSelectFood,
   refreshToken = 0,
 }: FoodLibraryScreenProps) {
   const [selectedCategory, setSelectedCategory] =
@@ -170,6 +172,7 @@ export function FoodLibraryScreen({
             <FoodCard
               accentColor={CARD_COLORS[index % CARD_COLORS.length]}
               food={item}
+              onPress={onSelectFood}
             />
           )}
           showsVerticalScrollIndicator={false}

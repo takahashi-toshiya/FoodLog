@@ -1,6 +1,7 @@
 import type { CalorieSource, MealType } from "@/meals/types/meal";
 
 export type MealInputValues = {
+  sourceFoodId: string | null;
   date: string;
   mealType: MealType;
   name: string;
@@ -14,3 +15,15 @@ export type MealInputValues = {
 };
 
 export type MealInputErrors = Partial<Record<keyof MealInputValues, string>>;
+
+export type MealInputPreset = Pick<
+  MealInputValues,
+  | "sourceFoodId"
+  | "name"
+  | "protein"
+  | "fat"
+  | "carbs"
+  | "calorieSource"
+  | "manualCalories"
+  | "memo"
+>;

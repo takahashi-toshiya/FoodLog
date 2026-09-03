@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 
 import { TodayScreen } from "@/meals/screens/TodayScreen";
@@ -9,12 +9,17 @@ import type { MealType } from "@/meals/types/meal";
 export default function TodayRoute() {
   const db = useSQLiteContext();
   const router = useRouter();
+  const params = useLocalSearchParams<{
+    date?: string;
+    dateRequestId?: string;
+  }>();
   const repository = useMemo(() => new SQLiteMealRepository(db), [db]);
-  const [refreshToken, setRefreshToken] = useState(0);
+  const [isFocused, setIsFocused] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
-      setRefreshToken((current) => current + 1);
+      setIsFocused(true);
+      return () => setIsFocused(false);
     }, []),
   );
 
@@ -27,8 +32,10 @@ export default function TodayRoute() {
 
   return (
     <TodayScreen
+      initialDateKey={params.date}
+      initialDateRequestId={params.dateRequestId}
+      isFocused={isFocused}
       onAddMeal={handleAddMeal}
-      refreshToken={refreshToken}
       repository={repository}
     />
   );

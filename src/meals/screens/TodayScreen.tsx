@@ -15,21 +15,36 @@ import { formatLongDate, toDateKey } from "@/shared/utils/date";
 
 type TodayScreenProps = {
   repository: MealRepository;
-  refreshToken?: number;
+  initialDateKey?: string;
+  initialDateRequestId?: string;
+  isFocused?: boolean;
   onAddMeal?: (date: string, mealType?: MealType) => void;
 };
 
 export function TodayScreen({
   repository,
-  refreshToken = 0,
+  initialDateKey,
+  initialDateRequestId,
+  isFocused = true,
   onAddMeal,
 }: TodayScreenProps) {
-  const [today] = useState(() => new Date());
-  const [selectedDate, setSelectedDate] = useState(today);
+  const [selectedDate, setSelectedDate] = useState(() =>
+    parseInitialDate(initialDateKey),
+  );
   const [mealEntries, setMealEntries] = useState<MealEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const selectedDateKey = toDateKey(selectedDate);
+
+  useEffect(() => {
+    if (initialDateKey) {
+      setSelectedDate((current) =>
+        toDateKey(current) === initialDateKey
+          ? current
+          : parseInitialDate(initialDateKey),
+      );
+    }
+  }, [initialDateKey, initialDateRequestId]);
 
   const loadEntries = useCallback(async () => {
     setIsLoading(true);
@@ -46,8 +61,10 @@ export function TodayScreen({
   }, [repository, selectedDateKey]);
 
   useEffect(() => {
-    void loadEntries();
-  }, [loadEntries, refreshToken]);
+    if (isFocused) {
+      void loadEntries();
+    }
+  }, [isFocused, loadEntries]);
 
   const totals = calculateNutritionTotals(mealEntries);
 
@@ -77,16 +94,6 @@ export function TodayScreen({
           showsVerticalScrollIndicator={false}
           style={styles.scroll}
         >
-          <DailyNutritionSummary
-            goal={DEFAULT_NUTRITION_GOAL}
-            totals={totals}
-          />
-
-          <View style={styles.sectionTitle}>
-            <Text style={styles.sectionTitleText}>食事</Text>
-            <Text style={styles.entryCount}>{mealEntries.length}件</Text>
-          </View>
-
           {isLoading ? (
             <Text style={styles.statusText}>食事記録を読み込んでいます</Text>
           ) : loadError ? (
@@ -100,16 +107,28 @@ export function TodayScreen({
               </Pressable>
             </View>
           ) : (
-            MEAL_TYPES.map((mealType) => (
-              <MealSection
-                entries={mealEntries.filter(
-                  (entry) => entry.mealType === mealType,
-                )}
-                key={mealType}
-                mealType={mealType}
-                onAddMeal={() => onAddMeal?.(selectedDateKey, mealType)}
+            <>
+              <DailyNutritionSummary
+                goal={DEFAULT_NUTRITION_GOAL}
+                totals={totals}
               />
-            ))
+
+              <View style={styles.sectionTitle}>
+                <Text style={styles.sectionTitleText}>食事</Text>
+                <Text style={styles.entryCount}>{mealEntries.length}件</Text>
+              </View>
+
+              {MEAL_TYPES.map((mealType) => (
+                <MealSection
+                  entries={mealEntries.filter(
+                    (entry) => entry.mealType === mealType,
+                  )}
+                  key={mealType}
+                  mealType={mealType}
+                  onAddMeal={() => onAddMeal?.(selectedDateKey, mealType)}
+                />
+              ))}
+            </>
           )}
         </ScrollView>
 
@@ -123,6 +142,17 @@ export function TodayScreen({
       </View>
     </SafeAreaView>
   );
+}
+
+function parseInitialDate(dateKey?: string): Date {
+  if (dateKey) {
+    const date = new Date(`${dateKey}T00:00:00`);
+    if (!Number.isNaN(date.getTime()) && toDateKey(date) === dateKey) {
+      return date;
+    }
+  }
+
+  return new Date();
 }
 
 const styles = StyleSheet.create({
