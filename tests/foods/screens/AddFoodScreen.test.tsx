@@ -13,6 +13,7 @@ describe("食品登録画面", () => {
         ...input,
       })),
       findAll: jest.fn(),
+      findById: jest.fn(),
     };
   }
 

@@ -13,5 +13,6 @@ export type CreateFoodInput = {
 
 export interface FoodRepository {
   findAll(): Promise<FoodItem[]>;
+  findById(id: string): Promise<FoodItem | null>;
   create(input: CreateFoodInput): Promise<FoodItem>;
 }

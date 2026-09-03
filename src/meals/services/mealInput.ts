@@ -97,7 +97,7 @@ export function validateMealInput(values: MealInputValues): MealInputResult {
     value: {
       date: values.date,
       mealType: values.mealType,
-      sourceFoodId: null,
+      sourceFoodId: values.sourceFoodId,
       name,
       servingMultiplier,
       calories: Math.round(baseCalories * servingMultiplier),

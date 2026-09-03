@@ -15,16 +15,21 @@ import { MEAL_TYPE_LABELS, MEAL_TYPES } from "@/meals/constants/meal-types";
 import { validateMealInput } from "@/meals/services/mealInput";
 import type { MealRepository } from "@/meals/storage/MealRepository";
 import type { MealType } from "@/meals/types/meal";
-import type { MealInputErrors, MealInputValues } from "@/meals/types/mealInput";
+import type {
+  MealInputErrors,
+  MealInputPreset,
+  MealInputValues,
+} from "@/meals/types/mealInput";
 import { calculateCalories } from "@/shared/services/nutrition";
 import { colors } from "@/shared/theme/colors";
 
 type AddMealScreenProps = {
   initialDate: string;
   initialMealType: MealType;
+  initialPreset?: MealInputPreset;
   repository: MealRepository;
   onCancel: () => void;
-  onSaved: () => void;
+  onSaved: (date: string) => void;
 };
 
 type TextFieldProps = {
@@ -74,21 +79,23 @@ function TextField({
 export function AddMealScreen({
   initialDate,
   initialMealType,
+  initialPreset,
   repository,
   onCancel,
   onSaved,
 }: AddMealScreenProps) {
   const [values, setValues] = useState<MealInputValues>({
+    sourceFoodId: initialPreset?.sourceFoodId ?? null,
     date: initialDate,
     mealType: initialMealType,
-    name: "",
+    name: initialPreset?.name ?? "",
     servingMultiplier: "1",
-    protein: "",
-    fat: "",
-    carbs: "",
-    calorieSource: "calculated",
-    manualCalories: "",
-    memo: "",
+    protein: initialPreset?.protein ?? "",
+    fat: initialPreset?.fat ?? "",
+    carbs: initialPreset?.carbs ?? "",
+    calorieSource: initialPreset?.calorieSource ?? "calculated",
+    manualCalories: initialPreset?.manualCalories ?? "",
+    memo: initialPreset?.memo ?? "",
   });
   const [errors, setErrors] = useState<MealInputErrors>({});
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -128,7 +135,7 @@ export function AddMealScreen({
 
     try {
       await repository.create(result.value);
-      onSaved();
+      onSaved(result.value.date);
     } catch (error) {
       console.error("食事記録の保存に失敗しました", error);
       setSaveError("食事を保存できませんでした。もう一度お試しください");

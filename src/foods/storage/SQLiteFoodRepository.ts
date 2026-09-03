@@ -49,6 +49,15 @@ export class SQLiteFoodRepository implements FoodRepository {
     return rows.map(mapFoodRow);
   }
 
+  async findById(id: string): Promise<FoodItem | null> {
+    const row = await this.db.getFirstAsync<FoodRow>(
+      "SELECT * FROM foods WHERE id = ?",
+      id,
+    );
+
+    return row ? mapFoodRow(row) : null;
+  }
+
   async create(input: CreateFoodInput): Promise<FoodItem> {
     const id = Crypto.randomUUID();
     const timestamp = new Date().toISOString();

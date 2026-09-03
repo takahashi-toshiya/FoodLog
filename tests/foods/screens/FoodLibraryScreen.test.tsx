@@ -9,12 +9,20 @@ describe("ライブラリ画面", () => {
     return {
       create: jest.fn(),
       findAll: jest.fn(async () => foods),
+      findById: jest.fn(),
     };
   }
 
-  function renderScreen(repository = createRepository()) {
+  function renderScreen(
+    repository = createRepository(),
+    onSelectFood = jest.fn(),
+  ) {
     return render(
-      <FoodLibraryScreen onAddFood={jest.fn()} repository={repository} />,
+      <FoodLibraryScreen
+        onAddFood={jest.fn()}
+        onSelectFood={onSelectFood}
+        repository={repository}
+      />,
     );
   }
 
@@ -66,6 +74,19 @@ describe("ライブラリ画面", () => {
     await fireEvent.press(getByText("セット"));
 
     expect(getByText("セットはまだありません")).toBeTruthy();
+  });
+
+  it("食品カードを押すと選択した食品を通知する", async () => {
+    const onSelectFood = jest.fn();
+    const { getByLabelText, getByText } = await renderScreen(
+      createRepository(),
+      onSelectFood,
+    );
+
+    await waitFor(() => expect(getByText("プロテイン")).toBeTruthy());
+    await fireEvent.press(getByLabelText("プロテインを選択"));
+
+    expect(onSelectFood).toHaveBeenCalledWith(FOOD_ITEM_FIXTURES[0]);
   });
 
   it("食品の取得に失敗した場合は再読み込みできる", async () => {
