@@ -1,35 +1,14 @@
+import {
+  FOOD_NAME_MAX_LENGTH,
+  MEMO_MAX_LENGTH,
+} from "@/meals/constants/meal-input";
 import type { CreateMealEntryInput } from "@/meals/storage/MealRepository";
-import type { CalorieSource, MealType } from "@/meals/types/meal";
-
-export const FOOD_NAME_MAX_LENGTH = 100;
-export const MEMO_MAX_LENGTH = 500;
-
-export type MealInputValues = {
-  date: string;
-  mealType: MealType;
-  name: string;
-  servingMultiplier: string;
-  protein: string;
-  fat: string;
-  carbs: string;
-  calorieSource: CalorieSource;
-  manualCalories: string;
-  memo: string;
-};
-
-export type MealInputErrors = Partial<Record<keyof MealInputValues, string>>;
+import type { MealInputErrors, MealInputValues } from "@/meals/types/mealInput";
+import { calculateCalories } from "@/shared/services/nutrition";
 
 type MealInputResult =
   | { isValid: true; value: CreateMealEntryInput }
   | { isValid: false; errors: MealInputErrors };
-
-export function calculateCalories(
-  protein: number,
-  fat: number,
-  carbs: number,
-): number {
-  return Math.round(protein * 4 + fat * 9 + carbs * 4);
-}
 
 function parseNonNegativeNumber(
   value: string,

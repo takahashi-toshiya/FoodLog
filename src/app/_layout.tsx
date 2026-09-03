@@ -9,6 +9,10 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen
+          name="add-food"
+          options={{ animation: "slide_from_bottom", presentation: "modal" }}
+        />
+        <Stack.Screen
           name="add-meal"
           options={{ animation: "slide_from_bottom", presentation: "modal" }}
         />

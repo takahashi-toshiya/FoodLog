@@ -211,8 +211,7 @@ src/
 │   │   └── nutrition.ts
 │   ├── storage/
 │   │   ├── MealRepository.ts
-│   │   ├── SQLiteMealRepository.ts
-│   │   └── mealEntryMapper.ts
+│   │   └── SQLiteMealRepository.ts
 │   └── types/
 │       └── meal.ts
 └── shared/
@@ -285,7 +284,7 @@ tests/
 
 1. DB設計のレビュー事項を確定する
 2. `expo-sqlite`を追加し、DB接続と初期マイグレーションを実装する
-3. MealRepositoryとSQLite実装、マッピングを作る
+3. MealRepositoryとSQLite実装、DB行の変換処理を作る
 4. RepositoryのSQLiteテストを作る
 5. 食事入力の変換、検証、カロリー計算を実装してテストする
 6. 食事追加モーダルと入力UIを実装する
