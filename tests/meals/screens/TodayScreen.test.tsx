@@ -1,8 +1,39 @@
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import type { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 
 import { createMealEntryFixtures } from "@/meals/fixtures/mealEntries";
 import { TodayScreen } from "@/meals/screens/TodayScreen";
 import type { MealRepository } from "@/meals/storage/MealRepository";
+
+jest.mock("@react-native-community/datetimepicker", () => {
+  const { Pressable, Text } = jest.requireActual("react-native");
+
+  return function MockDateTimePicker({
+    onChange,
+  }: {
+    onChange: (event: DateTimePickerEvent, date?: Date) => void;
+  }) {
+    return (
+      <Pressable
+        accessibilityLabel="日付を選択"
+        onPress={() =>
+          onChange(
+            {
+              nativeEvent: {
+                timestamp: new Date(2026, 7, 27, 12).getTime(),
+                utcOffset: 540,
+              },
+              type: "set",
+            },
+            new Date(2026, 7, 27, 12),
+          )
+        }
+      >
+        <Text>日付ピッカー</Text>
+      </Pressable>
+    );
+  };
+});
 
 describe("今日画面", () => {
   beforeEach(() => {
@@ -95,5 +126,52 @@ describe("今日画面", () => {
     await fireEvent.press(getByLabelText("夕食を追加"));
 
     expect(onAddMeal).toHaveBeenCalledWith("2026-08-28", "dinner");
+  });
+
+  it("カレンダーで選択した日付の記録へ切り替える", async () => {
+    const { getByLabelText, getByText } = await render(
+      <TodayScreen repository={createRepository()} />,
+    );
+
+    await waitFor(() => expect(getByText("4件")).toBeTruthy());
+    await fireEvent.press(getByLabelText("カレンダーを開く"));
+    await waitFor(() => expect(getByLabelText("日付を選択")).toBeTruthy());
+    await fireEvent.press(getByLabelText("日付を選択"));
+    await fireEvent.press(getByText("選択"));
+
+    await waitFor(() => expect(getByText("8月27日 木曜日")).toBeTruthy());
+    expect(getByText("0件")).toBeTruthy();
+    expect(getByLabelText("今日へ戻る")).toBeTruthy();
+  });
+
+  it("日付選択をキャンセルすると現在の日付を維持する", async () => {
+    const { getByLabelText, getByText, queryByText } = await render(
+      <TodayScreen repository={createRepository()} />,
+    );
+
+    await waitFor(() => expect(getByText("4件")).toBeTruthy());
+    await fireEvent.press(getByLabelText("カレンダーを開く"));
+    await waitFor(() => expect(getByLabelText("日付を選択")).toBeTruthy());
+    await fireEvent.press(getByLabelText("日付を選択"));
+    await fireEvent.press(getByText("キャンセル"));
+
+    expect(getByText("8月28日 金曜日")).toBeTruthy();
+    expect(queryByText("今日へ戻る")).toBeNull();
+  });
+
+  it("今日へ戻ると当日の記録へ切り替える", async () => {
+    const { getByLabelText, getByText, queryByText } = await render(
+      <TodayScreen
+        initialDateKey="2026-08-27"
+        repository={createRepository()}
+      />,
+    );
+
+    await waitFor(() => expect(getByText("8月27日 木曜日")).toBeTruthy());
+    await fireEvent.press(getByLabelText("今日へ戻る"));
+
+    await waitFor(() => expect(getByText("8月28日 金曜日")).toBeTruthy());
+    expect(getByText("4件")).toBeTruthy();
+    expect(queryByText("今日へ戻る")).toBeNull();
   });
 });
