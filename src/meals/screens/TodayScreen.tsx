@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { DailyNutritionSummary } from "@/meals/components/DailyNutritionSummary";
+import { DatePickerModal } from "@/meals/components/DatePickerModal";
 import { DateSelector } from "@/meals/components/DateSelector";
 import { MealSection } from "@/meals/components/MealSection";
 import { MEAL_TYPES } from "@/meals/constants/meal-types";
@@ -32,6 +33,7 @@ export function TodayScreen({
     parseInitialDate(initialDateKey),
   );
   const [mealEntries, setMealEntries] = useState<MealEntry[]>([]);
+  const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const selectedDateKey = toDateKey(selectedDate);
@@ -67,6 +69,13 @@ export function TodayScreen({
   }, [isFocused, loadEntries]);
 
   const totals = calculateNutritionTotals(mealEntries);
+  const today = new Date();
+  const isToday = selectedDateKey === toDateKey(today);
+
+  const handleSelectDate = (date: Date) => {
+    setSelectedDate(date);
+    setIsDatePickerVisible(false);
+  };
 
   return (
     <SafeAreaView edges={["top"]} style={styles.safeArea}>
@@ -76,12 +85,24 @@ export function TodayScreen({
             <Text style={styles.eyebrow}>今日の記録</Text>
             <Text style={styles.title}>{formatLongDate(selectedDate)}</Text>
           </View>
-          <Pressable
-            accessibilityLabel="カレンダーを開く"
-            style={styles.calendarButton}
-          >
-            <Text style={styles.calendarIcon}>▦</Text>
-          </Pressable>
+          <View style={styles.headerActions}>
+            {!isToday && (
+              <Pressable
+                accessibilityLabel="今日へ戻る"
+                onPress={() => setSelectedDate(today)}
+                style={styles.todayButton}
+              >
+                <Text style={styles.todayButtonText}>今日</Text>
+              </Pressable>
+            )}
+            <Pressable
+              accessibilityLabel="カレンダーを開く"
+              onPress={() => setIsDatePickerVisible(true)}
+              style={styles.calendarButton}
+            >
+              <Text style={styles.calendarIcon}>▦</Text>
+            </Pressable>
+          </View>
         </View>
 
         <DateSelector
@@ -139,6 +160,13 @@ export function TodayScreen({
         >
           <Text style={styles.addButtonText}>＋ 食事を追加</Text>
         </Pressable>
+
+        <DatePickerModal
+          isVisible={isDatePickerVisible}
+          onCancel={() => setIsDatePickerVisible(false)}
+          onSelectDate={handleSelectDate}
+          selectedDate={selectedDate}
+        />
       </View>
     </SafeAreaView>
   );
@@ -192,6 +220,26 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: "center",
     width: 44,
+  },
+  headerActions: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+  },
+  todayButton: {
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: 14,
+    borderWidth: 1,
+    minHeight: 44,
+    justifyContent: "center",
+    paddingHorizontal: 14,
+  },
+  todayButtonText: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: "800",
   },
   calendarIcon: {
     color: colors.text,
