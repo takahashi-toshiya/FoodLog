@@ -5,7 +5,7 @@ import { AppTabBar, type AppTabKey } from "@/shared/components/AppTabBar";
 export default function TabLayout() {
   const pathname = usePathname();
   const router = useRouter();
-  const activeTab: AppTabKey = pathname === "/library" ? "library" : "today";
+  const activeTab = getActiveTab(pathname);
 
   function handleSelectTab(tab: AppTabKey) {
     if (tab === "today") {
@@ -14,6 +14,10 @@ export default function TabLayout() {
 
     if (tab === "library") {
       router.replace("/library");
+    }
+
+    if (tab === "settings") {
+      router.replace("/settings");
     }
   }
 
@@ -26,6 +30,19 @@ export default function TabLayout() {
     >
       <Tabs.Screen name="today" options={{ title: "今日" }} />
       <Tabs.Screen name="library" options={{ title: "ライブラリ" }} />
+      <Tabs.Screen name="settings" options={{ title: "設定" }} />
     </Tabs>
   );
+}
+
+function getActiveTab(pathname: string): AppTabKey {
+  if (pathname.startsWith("/settings")) {
+    return "settings";
+  }
+
+  if (pathname === "/library") {
+    return "library";
+  }
+
+  return "today";
 }

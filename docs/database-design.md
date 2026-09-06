@@ -53,3 +53,20 @@ CREATE INDEX meal_entries_recorded_date_index
 CREATE INDEX meal_entries_source_food_id_index
   ON meal_entries (source_food_id);
 ```
+
+## `nutrition_goals`
+
+カロリーとPFCの目標値を、適用開始日ごとの履歴として保存する。
+
+```sql
+CREATE TABLE nutrition_goals (
+  id TEXT PRIMARY KEY NOT NULL,
+  effective_from TEXT NOT NULL UNIQUE,
+  calories INTEGER NOT NULL CHECK (calories > 0),
+  protein REAL NOT NULL CHECK (protein >= 0),
+  fat REAL NOT NULL CHECK (fat >= 0),
+  carbs REAL NOT NULL CHECK (carbs >= 0),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+```
