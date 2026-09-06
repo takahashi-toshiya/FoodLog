@@ -16,6 +16,10 @@ export default function RootLayout() {
           name="add-meal"
           options={{ animation: "slide_from_bottom", presentation: "modal" }}
         />
+        <Stack.Screen
+          name="edit-nutrition-goal"
+          options={{ animation: "slide_from_bottom", presentation: "modal" }}
+        />
       </Stack>
     </SQLiteProvider>
   );

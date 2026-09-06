@@ -1,12 +1,4 @@
 import type { MealEntry } from "@/meals/types/meal";
-import type { NutritionGoal } from "@/meals/types/nutrition";
-
-export const DEFAULT_NUTRITION_GOAL: NutritionGoal = {
-  calories: 2000,
-  protein: 120,
-  fat: 55,
-  carbs: 250,
-};
 
 type MealEntryFixture = Omit<
   MealEntry,

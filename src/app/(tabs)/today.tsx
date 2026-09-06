@@ -5,6 +5,7 @@ import { useSQLiteContext } from "expo-sqlite";
 import { TodayScreen } from "@/meals/screens/TodayScreen";
 import { SQLiteMealRepository } from "@/meals/storage/SQLiteMealRepository";
 import type { MealType } from "@/meals/types/meal";
+import { SQLiteNutritionGoalRepository } from "@/settings/storage/SQLiteNutritionGoalRepository";
 
 export default function TodayRoute() {
   const db = useSQLiteContext();
@@ -14,6 +15,10 @@ export default function TodayRoute() {
     dateRequestId?: string;
   }>();
   const repository = useMemo(() => new SQLiteMealRepository(db), [db]);
+  const nutritionGoalRepository = useMemo(
+    () => new SQLiteNutritionGoalRepository(db),
+    [db],
+  );
   const [isFocused, setIsFocused] = useState(false);
 
   useFocusEffect(
@@ -36,6 +41,7 @@ export default function TodayRoute() {
       initialDateRequestId={params.dateRequestId}
       isFocused={isFocused}
       onAddMeal={handleAddMeal}
+      nutritionGoalRepository={nutritionGoalRepository}
       repository={repository}
     />
   );

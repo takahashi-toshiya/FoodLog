@@ -4,6 +4,7 @@ import type { DateTimePickerEvent } from "@react-native-community/datetimepicker
 import { createMealEntryFixtures } from "@/meals/fixtures/mealEntries";
 import { TodayScreen } from "@/meals/screens/TodayScreen";
 import type { MealRepository } from "@/meals/storage/MealRepository";
+import type { NutritionGoalRepository } from "@/settings/storage/NutritionGoalRepository";
 
 jest.mock("@react-native-community/datetimepicker", () => {
   const { Pressable, Text } = jest.requireActual("react-native");
@@ -54,22 +55,44 @@ describe("今日画面", () => {
     };
   }
 
+  function createNutritionGoalRepository(): NutritionGoalRepository {
+    return {
+      findEffectiveOn: jest.fn(async (date) => ({
+        id: `goal-${date}`,
+        effectiveFrom: date,
+        calories: date === "2026-08-27" ? 1800 : 1975,
+        protein: 120,
+        fat: 55,
+        carbs: 250,
+        createdAt: `${date}T00:00:00.000Z`,
+        updatedAt: `${date}T00:00:00.000Z`,
+      })),
+      save: jest.fn(),
+    };
+  }
+
   it("当日の食事と栄養集計を表示する", async () => {
     const { getByText } = await render(
-      <TodayScreen repository={createRepository()} />,
+      <TodayScreen
+        nutritionGoalRepository={createNutritionGoalRepository()}
+        repository={createRepository()}
+      />,
     );
 
     await waitFor(() => expect(getByText("オートミールとバナナ")).toBeTruthy());
     expect(getByText("8月28日 金曜日")).toBeTruthy();
     expect(getByText("1,188")).toBeTruthy();
-    expect(getByText("812 kcal")).toBeTruthy();
+    expect(getByText("787 kcal")).toBeTruthy();
   });
 
   it("読み込み中は0件や集計値を表示しない", async () => {
     const repository = createRepository();
     repository.findByDate = jest.fn(() => new Promise(() => undefined));
     const { getByText, queryByText } = await render(
-      <TodayScreen repository={repository} />,
+      <TodayScreen
+        nutritionGoalRepository={createNutritionGoalRepository()}
+        repository={repository}
+      />,
     );
 
     expect(getByText("食事記録を読み込んでいます")).toBeTruthy();
@@ -79,7 +102,10 @@ describe("今日画面", () => {
 
   it("記録のない日を選択すると空状態を表示する", async () => {
     const { getByLabelText, getAllByText, getByText } = await render(
-      <TodayScreen repository={createRepository()} />,
+      <TodayScreen
+        nutritionGoalRepository={createNutritionGoalRepository()}
+        repository={createRepository()}
+      />,
     );
 
     await waitFor(() => expect(getByText("4件")).toBeTruthy());
@@ -87,6 +113,7 @@ describe("今日画面", () => {
 
     await waitFor(() => expect(getByText("0件")).toBeTruthy());
     expect(getByText("8月27日 木曜日")).toBeTruthy();
+    expect(getByText("/ 1,800 kcal")).toBeTruthy();
     expect(getAllByText(/(朝食|昼食|夕食|間食)を追加$/)).toHaveLength(4);
   });
 
@@ -96,6 +123,7 @@ describe("今日画面", () => {
       <TodayScreen
         initialDateKey="2026-08-27"
         initialDateRequestId="request-1"
+        nutritionGoalRepository={createNutritionGoalRepository()}
         repository={repository}
       />,
     );
@@ -110,6 +138,7 @@ describe("今日画面", () => {
       <TodayScreen
         initialDateKey="2026-08-27"
         initialDateRequestId="request-2"
+        nutritionGoalRepository={createNutritionGoalRepository()}
         repository={repository}
       />,
     );
@@ -119,7 +148,11 @@ describe("今日画面", () => {
   it("食事区分の追加導線から日付と区分を渡す", async () => {
     const onAddMeal = jest.fn();
     const { getByLabelText, getByText } = await render(
-      <TodayScreen onAddMeal={onAddMeal} repository={createRepository()} />,
+      <TodayScreen
+        nutritionGoalRepository={createNutritionGoalRepository()}
+        onAddMeal={onAddMeal}
+        repository={createRepository()}
+      />,
     );
 
     await waitFor(() => expect(getByText("4件")).toBeTruthy());
@@ -130,7 +163,10 @@ describe("今日画面", () => {
 
   it("カレンダーで選択した日付の記録へ切り替える", async () => {
     const { getByLabelText, getByText } = await render(
-      <TodayScreen repository={createRepository()} />,
+      <TodayScreen
+        nutritionGoalRepository={createNutritionGoalRepository()}
+        repository={createRepository()}
+      />,
     );
 
     await waitFor(() => expect(getByText("4件")).toBeTruthy());
@@ -146,7 +182,10 @@ describe("今日画面", () => {
 
   it("日付選択をキャンセルすると現在の日付を維持する", async () => {
     const { getByLabelText, getByText, queryByText } = await render(
-      <TodayScreen repository={createRepository()} />,
+      <TodayScreen
+        nutritionGoalRepository={createNutritionGoalRepository()}
+        repository={createRepository()}
+      />,
     );
 
     await waitFor(() => expect(getByText("4件")).toBeTruthy());
@@ -163,6 +202,7 @@ describe("今日画面", () => {
     const { getByLabelText, getByText, queryByText } = await render(
       <TodayScreen
         initialDateKey="2026-08-27"
+        nutritionGoalRepository={createNutritionGoalRepository()}
         repository={createRepository()}
       />,
     );

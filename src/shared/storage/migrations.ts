@@ -1,6 +1,7 @@
 import type { SQLiteDatabase } from "expo-sqlite";
 
-const INITIAL_SCHEMA_VERSION = 1;
+const MEAL_SCHEMA_VERSION = 1;
+const NUTRITION_GOAL_SCHEMA_VERSION = 2;
 
 export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
   await db.execAsync("PRAGMA foreign_keys = ON");
@@ -9,12 +10,11 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
     "PRAGMA user_version",
   );
 
-  if ((version?.user_version ?? 0) >= INITIAL_SCHEMA_VERSION) {
-    return;
-  }
+  const currentVersion = version?.user_version ?? 0;
 
-  await db.withTransactionAsync(async () => {
-    await db.execAsync(`
+  if (currentVersion < MEAL_SCHEMA_VERSION) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(`
       CREATE TABLE foods (
         id TEXT PRIMARY KEY NOT NULL,
         name TEXT NOT NULL,
@@ -57,7 +57,35 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
       CREATE INDEX meal_entries_source_food_id_index
         ON meal_entries (source_food_id);
 
-      PRAGMA user_version = ${INITIAL_SCHEMA_VERSION};
-    `);
-  });
+        PRAGMA user_version = ${MEAL_SCHEMA_VERSION};
+      `);
+    });
+  }
+
+  if (currentVersion < NUTRITION_GOAL_SCHEMA_VERSION) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(`
+        CREATE TABLE nutrition_goals (
+          id TEXT PRIMARY KEY NOT NULL,
+          effective_from TEXT NOT NULL UNIQUE,
+          calories INTEGER NOT NULL CHECK (calories > 0),
+          protein REAL NOT NULL CHECK (protein >= 0),
+          fat REAL NOT NULL CHECK (fat >= 0),
+          carbs REAL NOT NULL CHECK (carbs >= 0),
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        INSERT INTO nutrition_goals (
+          id, effective_from, calories, protein, fat, carbs,
+          created_at, updated_at
+        ) VALUES (
+          'default-nutrition-goal', '1970-01-01', 1975, 120, 55, 250,
+          '1970-01-01T00:00:00.000Z', '1970-01-01T00:00:00.000Z'
+        );
+
+        PRAGMA user_version = ${NUTRITION_GOAL_SCHEMA_VERSION};
+      `);
+    });
+  }
 }

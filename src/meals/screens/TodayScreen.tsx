@@ -7,15 +7,17 @@ import { DatePickerModal } from "@/meals/components/DatePickerModal";
 import { DateSelector } from "@/meals/components/DateSelector";
 import { MealSection } from "@/meals/components/MealSection";
 import { MEAL_TYPES } from "@/meals/constants/meal-types";
-import { DEFAULT_NUTRITION_GOAL } from "@/meals/fixtures/mealEntries";
 import { calculateNutritionTotals } from "@/meals/services/nutrition";
 import type { MealRepository } from "@/meals/storage/MealRepository";
 import type { MealEntry, MealType } from "@/meals/types/meal";
+import type { NutritionGoalRepository } from "@/settings/storage/NutritionGoalRepository";
+import type { NutritionGoal } from "@/settings/types/nutritionGoal";
 import { colors } from "@/shared/theme/colors";
 import { formatLongDate, toDateKey } from "@/shared/utils/date";
 
 type TodayScreenProps = {
   repository: MealRepository;
+  nutritionGoalRepository: NutritionGoalRepository;
   initialDateKey?: string;
   initialDateRequestId?: string;
   isFocused?: boolean;
@@ -24,6 +26,7 @@ type TodayScreenProps = {
 
 export function TodayScreen({
   repository,
+  nutritionGoalRepository,
   initialDateKey,
   initialDateRequestId,
   isFocused = true,
@@ -33,6 +36,9 @@ export function TodayScreen({
     parseInitialDate(initialDateKey),
   );
   const [mealEntries, setMealEntries] = useState<MealEntry[]>([]);
+  const [nutritionGoal, setNutritionGoal] = useState<NutritionGoal | null>(
+    null,
+  );
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -53,14 +59,19 @@ export function TodayScreen({
     setLoadError(null);
 
     try {
-      setMealEntries(await repository.findByDate(selectedDateKey));
+      const [entries, goal] = await Promise.all([
+        repository.findByDate(selectedDateKey),
+        nutritionGoalRepository.findEffectiveOn(selectedDateKey),
+      ]);
+      setMealEntries(entries);
+      setNutritionGoal(goal);
     } catch (error) {
-      console.error("食事記録の取得に失敗しました", error);
-      setLoadError("食事記録を読み込めませんでした");
+      console.error("選択日のデータ取得に失敗しました", error);
+      setLoadError("選択日のデータを読み込めませんでした");
     } finally {
       setIsLoading(false);
     }
-  }, [repository, selectedDateKey]);
+  }, [nutritionGoalRepository, repository, selectedDateKey]);
 
   useEffect(() => {
     if (isFocused) {
@@ -129,10 +140,9 @@ export function TodayScreen({
             </View>
           ) : (
             <>
-              <DailyNutritionSummary
-                goal={DEFAULT_NUTRITION_GOAL}
-                totals={totals}
-              />
+              {nutritionGoal && (
+                <DailyNutritionSummary goal={nutritionGoal} totals={totals} />
+              )}
 
               <View style={styles.sectionTitle}>
                 <Text style={styles.sectionTitleText}>食事</Text>
