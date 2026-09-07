@@ -22,6 +22,7 @@ type TodayScreenProps = {
   initialDateRequestId?: string;
   isFocused?: boolean;
   onAddMeal?: (date: string, mealType?: MealType) => void;
+  onEditMeal?: (entryId: string) => void;
 };
 
 export function TodayScreen({
@@ -31,6 +32,7 @@ export function TodayScreen({
   initialDateRequestId,
   isFocused = true,
   onAddMeal,
+  onEditMeal,
 }: TodayScreenProps) {
   const [selectedDate, setSelectedDate] = useState(() =>
     parseInitialDate(initialDateKey),
@@ -157,6 +159,7 @@ export function TodayScreen({
                   key={mealType}
                   mealType={mealType}
                   onAddMeal={() => onAddMeal?.(selectedDateKey, mealType)}
+                  onSelectMeal={(entry) => onEditMeal?.(entry.id)}
                 />
               ))}
             </>

@@ -1,20 +1,9 @@
-import type { CalorieSource, MealEntry, MealType } from "@/meals/types/meal";
-
-export type CreateMealEntryInput = {
-  date: string;
-  mealType: MealType;
-  sourceFoodId: string | null;
-  name: string;
-  servingMultiplier: number;
-  calories: number;
-  calorieSource: CalorieSource;
-  protein: number;
-  fat: number;
-  carbs: number;
-  memo: string | null;
-};
+import type { CreateMealEntryInput, MealEntry } from "@/meals/types/meal";
 
 export interface MealRepository {
   findByDate(date: string): Promise<MealEntry[]>;
+  findById(id: string): Promise<MealEntry | null>;
   create(input: CreateMealEntryInput): Promise<MealEntry>;
+  update(id: string, input: CreateMealEntryInput): Promise<MealEntry>;
+  delete(id: string): Promise<void>;
 }

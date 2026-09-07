@@ -12,7 +12,10 @@ describe("食事追加画面", () => {
         updatedAt: "2026-08-30T00:00:00.000Z",
         ...input,
       })),
+      delete: jest.fn(),
       findByDate: jest.fn(),
+      findById: jest.fn(),
+      update: jest.fn(),
     };
   }
 

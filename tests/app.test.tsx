@@ -9,7 +9,10 @@ describe("FoodLogアプリ", () => {
   it("今日画面を表示する", async () => {
     const repository: MealRepository = {
       create: jest.fn(),
+      delete: jest.fn(),
       findByDate: jest.fn(async (date) => createMealEntryFixtures(date)),
+      findById: jest.fn(),
+      update: jest.fn(),
     };
     const nutritionGoalRepository: NutritionGoalRepository = {
       findEffectiveOn: jest.fn(async () => ({

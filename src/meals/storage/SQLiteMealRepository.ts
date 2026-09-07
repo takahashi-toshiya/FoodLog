@@ -1,11 +1,13 @@
 import * as Crypto from "expo-crypto";
 import type { SQLiteDatabase } from "expo-sqlite";
 
+import type { MealRepository } from "@/meals/storage/MealRepository";
 import type {
+  CalorieSource,
   CreateMealEntryInput,
-  MealRepository,
-} from "@/meals/storage/MealRepository";
-import type { CalorieSource, MealEntry, MealType } from "@/meals/types/meal";
+  MealEntry,
+  MealType,
+} from "@/meals/types/meal";
 
 type MealEntryRow = {
   id: string;
@@ -57,6 +59,15 @@ export class SQLiteMealRepository implements MealRepository {
     return rows.map(mapMealEntryRow);
   }
 
+  async findById(id: string): Promise<MealEntry | null> {
+    const row = await this.db.getFirstAsync<MealEntryRow>(
+      "SELECT * FROM meal_entries WHERE id = ?",
+      id,
+    );
+
+    return row ? mapMealEntryRow(row) : null;
+  }
+
   async create(input: CreateMealEntryInput): Promise<MealEntry> {
     const id = Crypto.randomUUID();
     const timestamp = new Date().toISOString();
@@ -89,5 +100,51 @@ export class SQLiteMealRepository implements MealRepository {
       updatedAt: timestamp,
       ...input,
     };
+  }
+
+  async update(id: string, input: CreateMealEntryInput): Promise<MealEntry> {
+    const existing = await this.findById(id);
+    if (!existing) {
+      throw new Error(`Meal entry not found: ${id}`);
+    }
+
+    const updatedAt = new Date().toISOString();
+    const result = await this.db.runAsync(
+      `UPDATE meal_entries SET
+        source_food_id = ?, recorded_date = ?, meal_type = ?, name = ?,
+        serving_multiplier = ?, calories = ?, calorie_source = ?,
+        protein = ?, fat = ?, carbs = ?, memo = ?, updated_at = ?
+       WHERE id = ?`,
+      input.sourceFoodId,
+      input.date,
+      input.mealType,
+      input.name,
+      input.servingMultiplier,
+      input.calories,
+      input.calorieSource,
+      input.protein,
+      input.fat,
+      input.carbs,
+      input.memo,
+      updatedAt,
+      id,
+    );
+
+    if (result.changes === 0) {
+      throw new Error(`Meal entry not found: ${id}`);
+    }
+
+    return { ...existing, ...input, updatedAt };
+  }
+
+  async delete(id: string): Promise<void> {
+    const result = await this.db.runAsync(
+      "DELETE FROM meal_entries WHERE id = ?",
+      id,
+    );
+
+    if (result.changes === 0) {
+      throw new Error(`Meal entry not found: ${id}`);
+    }
   }
 }
