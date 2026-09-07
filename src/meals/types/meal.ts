@@ -18,3 +18,18 @@ export type MealEntry = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type CreateMealEntryInput = Pick<
+  MealEntry,
+  | "date"
+  | "mealType"
+  | "sourceFoodId"
+  | "name"
+  | "servingMultiplier"
+  | "calories"
+  | "calorieSource"
+  | "protein"
+  | "fat"
+  | "carbs"
+  | "memo"
+>;

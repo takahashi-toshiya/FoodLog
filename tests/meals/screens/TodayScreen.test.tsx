@@ -49,9 +49,12 @@ describe("今日画面", () => {
   function createRepository(): MealRepository {
     return {
       create: jest.fn(),
+      delete: jest.fn(),
       findByDate: jest.fn(async (date: string) =>
         date === "2026-08-28" ? createMealEntryFixtures(date) : [],
       ),
+      findById: jest.fn(),
+      update: jest.fn(),
     };
   }
 
@@ -159,6 +162,22 @@ describe("今日画面", () => {
     await fireEvent.press(getByLabelText("夕食を追加"));
 
     expect(onAddMeal).toHaveBeenCalledWith("2026-08-28", "dinner");
+  });
+
+  it("食事記録を押すと対象IDを編集導線へ渡す", async () => {
+    const onEditMeal = jest.fn();
+    const { getByLabelText, getByText } = await render(
+      <TodayScreen
+        nutritionGoalRepository={createNutritionGoalRepository()}
+        onEditMeal={onEditMeal}
+        repository={createRepository()}
+      />,
+    );
+
+    await waitFor(() => expect(getByText("4件")).toBeTruthy());
+    await fireEvent.press(getByLabelText("オートミールとバナナを編集"));
+
+    expect(onEditMeal).toHaveBeenCalledWith("oatmeal-banana");
   });
 
   it("カレンダーで選択した日付の記録へ切り替える", async () => {

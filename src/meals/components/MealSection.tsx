@@ -6,12 +6,14 @@ import { colors } from "@/shared/theme/colors";
 
 type MealEntryRowProps = {
   entry: MealEntry;
+  onPress?: (entry: MealEntry) => void;
 };
 
 type MealSectionProps = {
   mealType: MealType;
   entries: MealEntry[];
   onAddMeal?: (mealType: MealType) => void;
+  onSelectMeal?: (entry: MealEntry) => void;
 };
 
 const MEAL_SYMBOLS: Record<MealType, string> = {
@@ -21,33 +23,11 @@ const MEAL_SYMBOLS: Record<MealType, string> = {
   snack: "◇",
 };
 
-function MealEntryRow({ entry }: MealEntryRowProps) {
-  return (
-    <View style={styles.entryRow}>
-      <View style={styles.entryIcon}>
-        <Text style={styles.entryIconText}>{MEAL_SYMBOLS[entry.mealType]}</Text>
-      </View>
-      <View style={styles.entryContent}>
-        <Text numberOfLines={1} style={styles.entryName}>
-          {entry.name}
-        </Text>
-        <Text style={styles.entryMacros}>
-          P {entry.protein} · F {entry.fat} · C {entry.carbs}
-        </Text>
-      </View>
-      <Text style={styles.entryCalories}>
-        {entry.calories}
-        <Text style={styles.entryCaloriesUnit}> kcal</Text>
-      </Text>
-      <Text style={styles.chevron}>›</Text>
-    </View>
-  );
-}
-
 export function MealSection({
   mealType,
   entries,
   onAddMeal,
+  onSelectMeal,
 }: MealSectionProps) {
   const label = MEAL_TYPE_LABELS[mealType];
   const totalCalories = entries.reduce(
@@ -65,7 +45,9 @@ export function MealSection({
       </View>
 
       {entries.length > 0 ? (
-        entries.map((entry) => <MealEntryRow entry={entry} key={entry.id} />)
+        entries.map((entry) => (
+          <MealEntryRow entry={entry} key={entry.id} onPress={onSelectMeal} />
+        ))
       ) : (
         <Pressable
           accessibilityLabel={`${label}を追加`}
@@ -76,6 +58,33 @@ export function MealSection({
         </Pressable>
       )}
     </View>
+  );
+}
+
+function MealEntryRow({ entry, onPress }: MealEntryRowProps) {
+  return (
+    <Pressable
+      accessibilityLabel={`${entry.name}を編集`}
+      onPress={() => onPress?.(entry)}
+      style={styles.entryRow}
+    >
+      <View style={styles.entryIcon}>
+        <Text style={styles.entryIconText}>{MEAL_SYMBOLS[entry.mealType]}</Text>
+      </View>
+      <View style={styles.entryContent}>
+        <Text numberOfLines={1} style={styles.entryName}>
+          {entry.name}
+        </Text>
+        <Text style={styles.entryMacros}>
+          P {entry.protein} · F {entry.fat} · C {entry.carbs}
+        </Text>
+      </View>
+      <Text style={styles.entryCalories}>
+        {entry.calories}
+        <Text style={styles.entryCaloriesUnit}> kcal</Text>
+      </Text>
+      <Text style={styles.chevron}>›</Text>
+    </Pressable>
   );
 }
 

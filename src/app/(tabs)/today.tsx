@@ -35,12 +35,17 @@ export default function TodayRoute() {
     });
   };
 
+  const handleEditMeal = (entryId: string) => {
+    router.push({ pathname: "/edit-meal", params: { entryId } });
+  };
+
   return (
     <TodayScreen
       initialDateKey={params.date}
       initialDateRequestId={params.dateRequestId}
       isFocused={isFocused}
       onAddMeal={handleAddMeal}
+      onEditMeal={handleEditMeal}
       nutritionGoalRepository={nutritionGoalRepository}
       repository={repository}
     />

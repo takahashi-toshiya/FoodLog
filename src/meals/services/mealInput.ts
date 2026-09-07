@@ -2,7 +2,7 @@ import {
   FOOD_NAME_MAX_LENGTH,
   MEMO_MAX_LENGTH,
 } from "@/meals/constants/meal-input";
-import type { CreateMealEntryInput } from "@/meals/storage/MealRepository";
+import type { CreateMealEntryInput } from "@/meals/types/meal";
 import type { MealInputErrors, MealInputValues } from "@/meals/types/mealInput";
 import { calculateCalories } from "@/shared/services/nutrition";
 
