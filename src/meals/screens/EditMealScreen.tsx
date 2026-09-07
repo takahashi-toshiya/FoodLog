@@ -16,31 +16,6 @@ type EditMealScreenProps = {
   onSaved: (date: string) => void;
 };
 
-function formatInputNumber(value: number): string {
-  return String(Number(value.toFixed(6)));
-}
-
-function createInitialValues(entry: MealEntry): MealInputValues {
-  const multiplier = entry.servingMultiplier;
-
-  return {
-    sourceFoodId: entry.sourceFoodId,
-    date: entry.date,
-    mealType: entry.mealType,
-    name: entry.name,
-    servingMultiplier: String(multiplier),
-    protein: formatInputNumber(entry.protein / multiplier),
-    fat: formatInputNumber(entry.fat / multiplier),
-    carbs: formatInputNumber(entry.carbs / multiplier),
-    calorieSource: entry.calorieSource,
-    manualCalories:
-      entry.calorieSource === "manual"
-        ? String(Math.round(entry.calories / multiplier))
-        : "",
-    memo: entry.memo ?? "",
-  };
-}
-
 export function EditMealScreen({
   entryId,
   repository,
@@ -179,6 +154,31 @@ function StatusScreen({ actionLabel, message, onAction }: StatusScreenProps) {
       </View>
     </SafeAreaView>
   );
+}
+
+function createInitialValues(entry: MealEntry): MealInputValues {
+  const multiplier = entry.servingMultiplier;
+
+  return {
+    sourceFoodId: entry.sourceFoodId,
+    date: entry.date,
+    mealType: entry.mealType,
+    name: entry.name,
+    servingMultiplier: String(multiplier),
+    protein: formatInputNumber(entry.protein / multiplier),
+    fat: formatInputNumber(entry.fat / multiplier),
+    carbs: formatInputNumber(entry.carbs / multiplier),
+    calorieSource: entry.calorieSource,
+    manualCalories:
+      entry.calorieSource === "manual"
+        ? String(Math.round(entry.calories / multiplier))
+        : "",
+    memo: entry.memo ?? "",
+  };
+}
+
+function formatInputNumber(value: number): string {
+  return String(Number(value.toFixed(6)));
 }
 
 const styles = StyleSheet.create({

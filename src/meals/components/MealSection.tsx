@@ -23,33 +23,6 @@ const MEAL_SYMBOLS: Record<MealType, string> = {
   snack: "◇",
 };
 
-function MealEntryRow({ entry, onPress }: MealEntryRowProps) {
-  return (
-    <Pressable
-      accessibilityLabel={`${entry.name}を編集`}
-      onPress={() => onPress?.(entry)}
-      style={styles.entryRow}
-    >
-      <View style={styles.entryIcon}>
-        <Text style={styles.entryIconText}>{MEAL_SYMBOLS[entry.mealType]}</Text>
-      </View>
-      <View style={styles.entryContent}>
-        <Text numberOfLines={1} style={styles.entryName}>
-          {entry.name}
-        </Text>
-        <Text style={styles.entryMacros}>
-          P {entry.protein} · F {entry.fat} · C {entry.carbs}
-        </Text>
-      </View>
-      <Text style={styles.entryCalories}>
-        {entry.calories}
-        <Text style={styles.entryCaloriesUnit}> kcal</Text>
-      </Text>
-      <Text style={styles.chevron}>›</Text>
-    </Pressable>
-  );
-}
-
 export function MealSection({
   mealType,
   entries,
@@ -85,6 +58,33 @@ export function MealSection({
         </Pressable>
       )}
     </View>
+  );
+}
+
+function MealEntryRow({ entry, onPress }: MealEntryRowProps) {
+  return (
+    <Pressable
+      accessibilityLabel={`${entry.name}を編集`}
+      onPress={() => onPress?.(entry)}
+      style={styles.entryRow}
+    >
+      <View style={styles.entryIcon}>
+        <Text style={styles.entryIconText}>{MEAL_SYMBOLS[entry.mealType]}</Text>
+      </View>
+      <View style={styles.entryContent}>
+        <Text numberOfLines={1} style={styles.entryName}>
+          {entry.name}
+        </Text>
+        <Text style={styles.entryMacros}>
+          P {entry.protein} · F {entry.fat} · C {entry.carbs}
+        </Text>
+      </View>
+      <Text style={styles.entryCalories}>
+        {entry.calories}
+        <Text style={styles.entryCaloriesUnit}> kcal</Text>
+      </Text>
+      <Text style={styles.chevron}>›</Text>
+    </Pressable>
   );
 }
 

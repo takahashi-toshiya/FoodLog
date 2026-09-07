@@ -45,39 +45,6 @@ type TextFieldProps = {
   multiline?: boolean;
 };
 
-function TextField({
-  label,
-  value,
-  onChangeText,
-  error,
-  placeholder,
-  keyboardType = "default",
-  maxLength,
-  multiline = false,
-}: TextFieldProps) {
-  return (
-    <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput
-        accessibilityLabel={label}
-        keyboardType={keyboardType}
-        maxLength={maxLength}
-        multiline={multiline}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={colors.textMuted}
-        style={[
-          styles.input,
-          multiline && styles.memoInput,
-          error && styles.inputError,
-        ]}
-        value={value}
-      />
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-    </View>
-  );
-}
-
 export function MealEntryForm({
   closeAccessibilityLabel,
   initialValues,
@@ -327,6 +294,39 @@ export function MealEntryForm({
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+function TextField({
+  label,
+  value,
+  onChangeText,
+  error,
+  placeholder,
+  keyboardType = "default",
+  maxLength,
+  multiline = false,
+}: TextFieldProps) {
+  return (
+    <View style={styles.field}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        accessibilityLabel={label}
+        keyboardType={keyboardType}
+        maxLength={maxLength}
+        multiline={multiline}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={colors.textMuted}
+        style={[
+          styles.input,
+          multiline && styles.memoInput,
+          error && styles.inputError,
+        ]}
+        value={value}
+      />
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+    </View>
   );
 }
 

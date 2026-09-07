@@ -26,41 +26,6 @@ const RING_STROKE = 10;
 const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
-function MacroProgressRow({
-  label,
-  shortLabel,
-  current,
-  goal,
-  color,
-}: MacroProgressRowProps) {
-  const progress = calculateProgress(current, goal);
-
-  return (
-    <View style={styles.macroRow}>
-      <View style={[styles.macroBadge, { backgroundColor: color }]}>
-        <Text style={styles.macroBadgeText}>{shortLabel}</Text>
-      </View>
-      <View style={styles.macroContent}>
-        <View style={styles.macroLabels}>
-          <Text style={styles.macroName}>{label}</Text>
-          <Text style={styles.macroValue}>
-            {current}
-            <Text style={styles.macroGoal}> / {goal}g</Text>
-          </Text>
-        </View>
-        <View style={styles.progressTrack}>
-          <View
-            style={[
-              styles.progressFill,
-              { backgroundColor: color, width: `${progress * 100}%` },
-            ]}
-          />
-        </View>
-      </View>
-    </View>
-  );
-}
-
 export function DailyNutritionSummary({
   totals,
   goal,
@@ -145,6 +110,41 @@ export function DailyNutritionSummary({
           label="炭水化物"
           shortLabel="C"
         />
+      </View>
+    </View>
+  );
+}
+
+function MacroProgressRow({
+  label,
+  shortLabel,
+  current,
+  goal,
+  color,
+}: MacroProgressRowProps) {
+  const progress = calculateProgress(current, goal);
+
+  return (
+    <View style={styles.macroRow}>
+      <View style={[styles.macroBadge, { backgroundColor: color }]}>
+        <Text style={styles.macroBadgeText}>{shortLabel}</Text>
+      </View>
+      <View style={styles.macroContent}>
+        <View style={styles.macroLabels}>
+          <Text style={styles.macroName}>{label}</Text>
+          <Text style={styles.macroValue}>
+            {current}
+            <Text style={styles.macroGoal}> / {goal}g</Text>
+          </Text>
+        </View>
+        <View style={styles.progressTrack}>
+          <View
+            style={[
+              styles.progressFill,
+              { backgroundColor: color, width: `${progress * 100}%` },
+            ]}
+          />
+        </View>
       </View>
     </View>
   );
