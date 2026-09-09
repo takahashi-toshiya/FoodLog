@@ -12,8 +12,10 @@ describe("食品登録画面", () => {
         updatedAt: "2026-09-01T00:00:00.000Z",
         ...input,
       })),
+      delete: jest.fn(),
       findAll: jest.fn(),
       findById: jest.fn(),
+      update: jest.fn(),
     };
   }
 

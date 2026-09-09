@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { FoodCard } from "@/foods/components/FoodCard";
@@ -18,6 +25,7 @@ const CARD_COLORS = [colors.protein, colors.carbs, colors.fat];
 type FoodLibraryScreenProps = {
   repository: FoodRepository;
   onAddFood: () => void;
+  onEditFood: (foodId: string) => void;
   onSelectFood: (food: FoodItem) => void;
   refreshToken?: number;
 };
@@ -25,6 +33,7 @@ type FoodLibraryScreenProps = {
 export function FoodLibraryScreen({
   repository,
   onAddFood,
+  onEditFood,
   onSelectFood,
   refreshToken = 0,
 }: FoodLibraryScreenProps) {
@@ -35,6 +44,8 @@ export function FoodLibraryScreen({
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [retryToken, setRetryToken] = useState(0);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [deletingFoodId, setDeletingFoodId] = useState<string | null>(null);
 
   const loadFoods = useCallback(async () => {
     setIsLoading(true);
@@ -129,6 +140,52 @@ export function FoodLibraryScreen({
 
   const visibleFoods = selectedCategory === "foods" ? filteredFoods : [];
 
+  const handleDeleteFood = async (food: FoodItem) => {
+    if (deletingFoodId) {
+      return;
+    }
+
+    setDeletingFoodId(food.id);
+    setActionError(null);
+
+    try {
+      await repository.delete(food.id);
+      await loadFoods();
+    } catch (error) {
+      console.error("食品の削除に失敗しました", error);
+      setActionError("食品を削除できませんでした。もう一度お試しください");
+    } finally {
+      setDeletingFoodId(null);
+    }
+  };
+
+  const handleRequestDelete = (food: FoodItem) => {
+    Alert.alert(
+      `「${food.name}」を削除しますか？`,
+      "過去の食事記録は削除されません。",
+      [
+        { text: "キャンセル", style: "cancel" },
+        {
+          text: "削除",
+          style: "destructive",
+          onPress: () => handleDeleteFood(food),
+        },
+      ],
+    );
+  };
+
+  const handleOpenMenu = (food: FoodItem) => {
+    Alert.alert(food.name, "この食品の操作を選択してください", [
+      { text: "編集", onPress: () => onEditFood(food.id) },
+      {
+        text: "削除",
+        style: "destructive",
+        onPress: () => handleRequestDelete(food),
+      },
+      { text: "キャンセル", style: "cancel" },
+    ]);
+  };
+
   return (
     <SafeAreaView edges={["top"]} style={styles.safeArea}>
       <View style={styles.screen}>
@@ -166,6 +223,9 @@ export function FoodLibraryScreen({
               <Text style={styles.hint}>
                 項目を選ぶと、内容を確認して今日の食事に追加できます。
               </Text>
+              {actionError ? (
+                <Text style={styles.actionError}>{actionError}</Text>
+              ) : null}
             </View>
           }
           renderItem={({ item, index }) => (
@@ -173,6 +233,7 @@ export function FoodLibraryScreen({
               accentColor={CARD_COLORS[index % CARD_COLORS.length]}
               food={item}
               onPress={onSelectFood}
+              onPressMenu={handleOpenMenu}
             />
           )}
           showsVerticalScrollIndicator={false}
@@ -239,6 +300,12 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginHorizontal: 3,
     marginVertical: 12,
+  },
+  actionError: {
+    color: "#C83E3E",
+    fontSize: 12,
+    marginBottom: 4,
+    textAlign: "center",
   },
   emptyState: {
     alignItems: "center",

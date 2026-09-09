@@ -1,3 +1,4 @@
+import { Alert } from "react-native";
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 
 import { FOOD_ITEM_FIXTURES } from "@/foods/fixtures/foodItems";
@@ -8,23 +9,31 @@ describe("ライブラリ画面", () => {
   function createRepository(foods = [...FOOD_ITEM_FIXTURES]): FoodRepository {
     return {
       create: jest.fn(),
+      delete: jest.fn(),
       findAll: jest.fn(async () => foods),
       findById: jest.fn(),
+      update: jest.fn(),
     };
   }
 
   function renderScreen(
     repository = createRepository(),
     onSelectFood = jest.fn(),
+    onEditFood = jest.fn(),
   ) {
     return render(
       <FoodLibraryScreen
         onAddFood={jest.fn()}
+        onEditFood={onEditFood}
         onSelectFood={onSelectFood}
         repository={repository}
       />,
     );
   }
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
   it("よく使う食品と栄養情報を表示する", async () => {
     const { getByText } = await renderScreen();
@@ -87,6 +96,63 @@ describe("ライブラリ画面", () => {
     await fireEvent.press(getByLabelText("プロテインを選択"));
 
     expect(onSelectFood).toHaveBeenCalledWith(FOOD_ITEM_FIXTURES[0]);
+  });
+
+  it("食品メニューから対象食品を編集できる", async () => {
+    const onSelectFood = jest.fn();
+    const onEditFood = jest.fn();
+    jest
+      .spyOn(Alert, "alert")
+      .mockImplementation((_title, _message, buttons) => {
+        buttons?.[0]?.onPress?.();
+      });
+    const { getByLabelText, getByText } = await renderScreen(
+      createRepository(),
+      onSelectFood,
+      onEditFood,
+    );
+
+    await waitFor(() => expect(getByText("プロテイン")).toBeTruthy());
+    await fireEvent.press(getByLabelText("プロテインのメニューを開く"));
+
+    expect(onEditFood).toHaveBeenCalledWith("protein");
+    expect(onSelectFood).not.toHaveBeenCalled();
+  });
+
+  it("削除を承認すると食品を削除して一覧を再取得する", async () => {
+    const repository = createRepository();
+    jest
+      .spyOn(Alert, "alert")
+      .mockImplementation((_title, _message, buttons) => {
+        buttons?.[1]?.onPress?.();
+      });
+    const { getByLabelText, getByText } = await renderScreen(repository);
+
+    await waitFor(() => expect(getByText("プロテイン")).toBeTruthy());
+    await fireEvent.press(getByLabelText("プロテインのメニューを開く"));
+
+    await waitFor(() =>
+      expect(repository.delete).toHaveBeenCalledWith("protein"),
+    );
+    expect(repository.findAll).toHaveBeenCalledTimes(2);
+  });
+
+  it("削除確認をキャンセルした場合は食品を削除しない", async () => {
+    const repository = createRepository();
+    let alertCount = 0;
+    jest
+      .spyOn(Alert, "alert")
+      .mockImplementation((_title, _message, buttons) => {
+        const buttonIndex = alertCount === 0 ? 1 : 0;
+        alertCount += 1;
+        buttons?.[buttonIndex]?.onPress?.();
+      });
+    const { getByLabelText, getByText } = await renderScreen(repository);
+
+    await waitFor(() => expect(getByText("プロテイン")).toBeTruthy());
+    await fireEvent.press(getByLabelText("プロテインのメニューを開く"));
+
+    expect(repository.delete).not.toHaveBeenCalled();
   });
 
   it("食品の取得に失敗した場合は再読み込みできる", async () => {
