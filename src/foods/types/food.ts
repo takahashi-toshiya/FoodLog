@@ -11,3 +11,15 @@ export type FoodItem = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type CreateFoodInput = Pick<
+  FoodItem,
+  | "name"
+  | "servingAmount"
+  | "servingUnit"
+  | "calories"
+  | "protein"
+  | "fat"
+  | "carbs"
+  | "memo"
+>;

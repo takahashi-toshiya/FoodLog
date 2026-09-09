@@ -20,6 +20,9 @@ export default function LibraryRoute() {
   return (
     <FoodLibraryScreen
       onAddFood={() => router.push("/add-food")}
+      onEditFood={(foodId) =>
+        router.push({ pathname: "/edit-food", params: { foodId } })
+      }
       onSelectFood={(food) =>
         router.push({ pathname: "/add-meal", params: { foodId: food.id } })
       }

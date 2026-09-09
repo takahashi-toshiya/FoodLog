@@ -1,11 +1,8 @@
 import * as Crypto from "expo-crypto";
 import type { SQLiteDatabase } from "expo-sqlite";
 
-import type {
-  CreateFoodInput,
-  FoodRepository,
-} from "@/foods/storage/FoodRepository";
-import type { FoodItem } from "@/foods/types/food";
+import type { FoodRepository } from "@/foods/storage/FoodRepository";
+import type { CreateFoodInput, FoodItem } from "@/foods/types/food";
 
 type FoodRow = {
   id: string;
@@ -86,5 +83,44 @@ export class SQLiteFoodRepository implements FoodRepository {
       updatedAt: timestamp,
       ...input,
     };
+  }
+
+  async update(id: string, input: CreateFoodInput): Promise<FoodItem> {
+    const existing = await this.findById(id);
+    if (!existing) {
+      throw new Error(`Food not found: ${id}`);
+    }
+
+    const updatedAt = new Date().toISOString();
+    const result = await this.db.runAsync(
+      `UPDATE foods SET
+        name = ?, serving_amount = ?, serving_unit = ?, calories = ?,
+        protein = ?, fat = ?, carbs = ?, memo = ?, updated_at = ?
+       WHERE id = ?`,
+      input.name,
+      input.servingAmount,
+      input.servingUnit,
+      input.calories,
+      input.protein,
+      input.fat,
+      input.carbs,
+      input.memo,
+      updatedAt,
+      id,
+    );
+
+    if (result.changes === 0) {
+      throw new Error(`Food not found: ${id}`);
+    }
+
+    return { ...existing, ...input, updatedAt };
+  }
+
+  async delete(id: string): Promise<void> {
+    const result = await this.db.runAsync("DELETE FROM foods WHERE id = ?", id);
+
+    if (result.changes === 0) {
+      throw new Error(`Food not found: ${id}`);
+    }
   }
 }

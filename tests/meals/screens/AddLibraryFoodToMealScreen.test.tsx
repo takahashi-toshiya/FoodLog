@@ -9,8 +9,10 @@ describe("ライブラリ食品の食事追加画面", () => {
   function createFoodRepository(): FoodRepository {
     return {
       create: jest.fn(),
+      delete: jest.fn(),
       findAll: jest.fn(),
       findById: jest.fn(async () => FOOD_ITEM_FIXTURES[0]),
+      update: jest.fn(),
     };
   }
 

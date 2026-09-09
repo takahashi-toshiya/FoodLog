@@ -1,10 +1,10 @@
-import type { CreateFoodInput } from "@/foods/storage/FoodRepository";
 import {
   FOOD_MEMO_MAX_LENGTH,
   FOOD_NAME_MAX_LENGTH,
   SERVING_UNIT_MAX_LENGTH,
 } from "@/foods/constants/food-input";
 import type { FoodInputErrors, FoodInputValues } from "@/foods/types/foodInput";
+import type { CreateFoodInput } from "@/foods/types/food";
 import { calculateCalories } from "@/shared/services/nutrition";
 
 type FoodInputResult =
