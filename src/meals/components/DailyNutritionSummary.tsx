@@ -54,17 +54,16 @@ export function DailyNutritionSummary({
               cx={RING_SIZE / 2}
               cy={RING_SIZE / 2}
               fill="none"
-              origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`}
               r={RING_RADIUS}
-              rotation="-90"
               stroke={colors.primary}
               strokeDasharray={`${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`}
               strokeDashoffset={strokeOffset}
               strokeLinecap="round"
               strokeWidth={RING_STROKE}
+              transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
             />
           </Svg>
-          <View pointerEvents="none" style={styles.ringLabel}>
+          <View style={styles.ringLabel}>
             <Text style={styles.calorieValue}>
               {totals.calories.toLocaleString()}
             </Text>
@@ -172,6 +171,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: "center",
     left: 0,
+    pointerEvents: "none",
     position: "absolute",
     right: 0,
     top: 0,
