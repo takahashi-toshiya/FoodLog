@@ -45,7 +45,7 @@ describe("食事編集画面", () => {
   it("保存済みの倍率適用前の値を復元し、編集内容を保存する", async () => {
     const repository = createRepository();
     const onSaved = jest.fn();
-    const { getByDisplayValue, getByLabelText } = await render(
+    const { getByDisplayValue, getByLabelText, getByText } = await render(
       <EditMealScreen
         entryId="meal-id"
         onCancel={jest.fn()}
@@ -56,12 +56,14 @@ describe("食事編集画面", () => {
     );
 
     await waitFor(() => expect(getByDisplayValue("鶏むね肉")).toBeTruthy());
+    expect(getByText("食事記録を編集")).toBeTruthy();
+    expect(getByText("食事記録の変更を保存")).toBeTruthy();
     expect(getByDisplayValue("20")).toBeTruthy();
     expect(getByDisplayValue("10")).toBeTruthy();
     expect(getByDisplayValue("30")).toBeTruthy();
 
     await fireEvent.changeText(getByLabelText("食品・料理名"), "鶏肉弁当");
-    await fireEvent.press(getByLabelText("変更を保存する"));
+    await fireEvent.press(getByLabelText("食事記録の変更を保存する"));
 
     await waitFor(() => expect(repository.update).toHaveBeenCalledTimes(1));
     expect(repository.update).toHaveBeenCalledWith(

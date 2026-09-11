@@ -12,7 +12,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { FoodSelectionModal } from "@/foods/screens/FoodSelectionModal";
+import type { FoodRepository } from "@/foods/storage/FoodRepository";
+import type { FoodItem } from "@/foods/types/food";
 import { MEAL_TYPE_LABELS, MEAL_TYPES } from "@/meals/constants/meal-types";
+import { createMealInputPresetFromFood } from "@/meals/services/foodMealPreset";
 import { validateMealInput } from "@/meals/services/mealInput";
 import type { MealInputErrors, MealInputValues } from "@/meals/types/mealInput";
 import { calculateCalories } from "@/shared/services/nutrition";
@@ -20,6 +24,7 @@ import { colors } from "@/shared/theme/colors";
 
 type MealEntryFormProps = {
   closeAccessibilityLabel: string;
+  foodRepository?: FoodRepository;
   initialValues: MealInputValues;
   isDisabled?: boolean;
   onCancel: () => void;
@@ -47,6 +52,7 @@ type TextFieldProps = {
 
 export function MealEntryForm({
   closeAccessibilityLabel,
+  foodRepository,
   initialValues,
   isDisabled = false,
   onCancel,
@@ -59,6 +65,7 @@ export function MealEntryForm({
   const [errors, setErrors] = useState<MealInputErrors>({});
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isFoodSelectionVisible, setIsFoodSelectionVisible] = useState(false);
 
   const automaticCalories = useMemo(() => {
     const protein = Number(values.protein) || 0;
@@ -100,6 +107,15 @@ export function MealEntryForm({
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleSelectFood = (food: FoodItem) => {
+    const preset = createMealInputPresetFromFood(food);
+
+    setValues((current) => ({ ...current, ...preset }));
+    setErrors({});
+    setSaveError(null);
+    setIsFoodSelectionVisible(false);
   };
 
   return (
@@ -175,6 +191,17 @@ export function MealEntryForm({
               </View>
             </View>
           </View>
+
+          {foodRepository ? (
+            <Pressable
+              accessibilityLabel="ライブラリから食品を選ぶ"
+              accessibilityRole="button"
+              onPress={() => setIsFoodSelectionVisible(true)}
+              style={styles.libraryButton}
+            >
+              <Text style={styles.libraryButtonText}>ライブラリから選ぶ</Text>
+            </Pressable>
+          ) : null}
 
           <TextField
             error={errors.name}
@@ -293,6 +320,14 @@ export function MealEntryForm({
           {renderFooter?.(isSaving || isDisabled)}
         </ScrollView>
       </KeyboardAvoidingView>
+      {foodRepository ? (
+        <FoodSelectionModal
+          isVisible={isFoodSelectionVisible}
+          onClose={() => setIsFoodSelectionVisible(false)}
+          onSelectFood={handleSelectFood}
+          repository={foodRepository}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -357,6 +392,22 @@ const styles = StyleSheet.create({
   saveText: { color: colors.primary, fontSize: 13, fontWeight: "800" },
   disabledText: { opacity: 0.45 },
   content: { padding: 16, paddingBottom: 40 },
+  libraryButton: {
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderColor: colors.primary,
+    borderRadius: 12,
+    borderWidth: 1,
+    justifyContent: "center",
+    marginBottom: 14,
+    marginTop: 14,
+    minHeight: 46,
+  },
+  libraryButtonText: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: "800",
+  },
   row: { flexDirection: "row", gap: 10 },
   halfField: { flex: 1 },
   field: { marginBottom: 14 },

@@ -47,6 +47,7 @@ export default function AddMealRoute() {
 
   return (
     <AddMealScreen
+      foodRepository={foodRepository}
       initialDate={initialDate}
       initialMealType={mealType}
       onCancel={() => router.back()}

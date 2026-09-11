@@ -22,7 +22,7 @@ describe("食品登録画面", () => {
   it("入力した食品を保存する", async () => {
     const repository = createRepository();
     const onSaved = jest.fn();
-    const { getByLabelText } = await render(
+    const { getByLabelText, getByText } = await render(
       <AddFoodScreen
         onCancel={jest.fn()}
         onSaved={onSaved}
@@ -30,13 +30,16 @@ describe("食品登録画面", () => {
       />,
     );
 
+    expect(getByText("ライブラリに食品を追加")).toBeTruthy();
+    expect(getByText("ライブラリに保存")).toBeTruthy();
+
     await fireEvent.changeText(getByLabelText("食品名"), "玄米");
     await fireEvent.changeText(getByLabelText("量"), "150");
     await fireEvent.changeText(getByLabelText("単位"), "g");
     await fireEvent.changeText(getByLabelText("P たんぱく質"), "4");
     await fireEvent.changeText(getByLabelText("F 脂質"), "2");
     await fireEvent.changeText(getByLabelText("C 炭水化物"), "53");
-    await fireEvent.press(getByLabelText("食品を保存する"));
+    await fireEvent.press(getByLabelText("ライブラリに保存する"));
 
     await waitFor(() => expect(repository.create).toHaveBeenCalledTimes(1));
     expect(repository.create).toHaveBeenCalledWith(
@@ -61,7 +64,7 @@ describe("食品登録画面", () => {
     );
 
     await fireEvent.changeText(getByLabelText("単位"), "");
-    await fireEvent.press(getByLabelText("食品を保存する"));
+    await fireEvent.press(getByLabelText("ライブラリに保存する"));
 
     expect(getByText("食品名を入力してください")).toBeTruthy();
     expect(getByText("単位を入力してください")).toBeTruthy();

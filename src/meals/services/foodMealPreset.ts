@@ -8,8 +8,8 @@ export function createMealInputPresetFromFood(food: FoodItem): MealInputPreset {
     protein: String(food.protein),
     fat: String(food.fat),
     carbs: String(food.carbs),
-    calorieSource: "manual",
-    manualCalories: String(food.calories),
+    calorieSource: "calculated",
+    manualCalories: "",
     memo: food.memo ?? "",
   };
 }

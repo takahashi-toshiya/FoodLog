@@ -129,8 +129,8 @@ export function EditMealScreen({
           </Pressable>
         </View>
       )}
-      submitLabel="変更を保存"
-      title="食事を編集"
+      submitLabel="食事記録の変更を保存"
+      title="食事記録を編集"
     />
   );
 }

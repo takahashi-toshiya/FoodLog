@@ -17,37 +17,41 @@ export function FoodCard({
   onPressMenu,
 }: FoodCardProps) {
   return (
-    <Pressable
-      accessibilityLabel={`${food.name}を選択`}
-      accessibilityRole="button"
-      onPress={() => onPress?.(food)}
-      style={styles.container}
-    >
-      <View style={[styles.initial, { backgroundColor: accentColor }]}>
-        <Text style={styles.initialText}>{food.name.slice(0, 1)}</Text>
-      </View>
-
-      <View style={styles.content}>
-        <Text numberOfLines={1} style={styles.name}>
-          {food.name}
-        </Text>
-        <Text numberOfLines={1} style={styles.details}>
-          {food.servingAmount}
-          {food.servingUnit} · {food.calories} kcal · P {food.protein} / F{" "}
-          {food.fat} / C {food.carbs}
-        </Text>
-      </View>
-
+    <View style={styles.container}>
       <Pressable
-        accessibilityLabel={`${food.name}のメニューを開く`}
+        accessibilityLabel={`${food.name}を選択`}
         accessibilityRole="button"
-        hitSlop={10}
-        onPress={() => onPressMenu?.(food)}
-        style={styles.menuButton}
+        onPress={() => onPress?.(food)}
+        style={styles.selectionButton}
       >
-        <Text style={styles.menuText}>⋯</Text>
+        <View style={[styles.initial, { backgroundColor: accentColor }]}>
+          <Text style={styles.initialText}>{food.name.slice(0, 1)}</Text>
+        </View>
+
+        <View style={styles.content}>
+          <Text numberOfLines={1} style={styles.name}>
+            {food.name}
+          </Text>
+          <Text numberOfLines={1} style={styles.details}>
+            {food.servingAmount}
+            {food.servingUnit} · {food.calories} kcal · P {food.protein} / F{" "}
+            {food.fat} / C {food.carbs}
+          </Text>
+        </View>
       </Pressable>
-    </Pressable>
+
+      {onPressMenu ? (
+        <Pressable
+          accessibilityLabel={`${food.name}のメニューを開く`}
+          accessibilityRole="button"
+          hitSlop={10}
+          onPress={() => onPressMenu(food)}
+          style={styles.menuButton}
+        >
+          <Text style={styles.menuText}>⋯</Text>
+        </Pressable>
+      ) : null}
+    </View>
   );
 }
 
@@ -59,9 +63,16 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderWidth: 1,
     flexDirection: "row",
-    gap: 10,
     marginBottom: 9,
     minHeight: 64,
+    overflow: "hidden",
+  },
+  selectionButton: {
+    alignItems: "center",
+    flex: 1,
+    flexDirection: "row",
+    gap: 10,
+    minHeight: 62,
     padding: 11,
   },
   initial: {
@@ -94,6 +105,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minHeight: 40,
     minWidth: 32,
+    marginRight: 8,
   },
   menuText: {
     color: colors.textMuted,

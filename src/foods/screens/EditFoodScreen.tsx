@@ -82,8 +82,8 @@ export function EditFoodScreen({
       initialValues={createInitialValues(food)}
       onCancel={onCancel}
       onSubmit={handleSubmit}
-      submitLabel="変更を保存"
-      title="食品を編集"
+      submitLabel="ライブラリの変更を保存"
+      title="ライブラリの食品を編集"
     />
   );
 }

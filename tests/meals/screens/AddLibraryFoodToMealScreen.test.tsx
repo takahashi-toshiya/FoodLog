@@ -35,7 +35,7 @@ describe("ライブラリ食品の食事追加画面", () => {
     const foodRepository = createFoodRepository();
     const mealRepository = createMealRepository();
     const onSaved = jest.fn();
-    const { getByDisplayValue, getByLabelText } = await render(
+    const { getByDisplayValue, getByLabelText, getByText } = await render(
       <AddLibraryFoodToMealScreen
         foodId="protein"
         foodRepository={foodRepository}
@@ -48,13 +48,13 @@ describe("ライブラリ食品の食事追加画面", () => {
     );
 
     await waitFor(() => expect(getByDisplayValue("プロテイン")).toBeTruthy());
-    expect(getByDisplayValue("118")).toBeTruthy();
+    expect(getByText("PFCから自動計算")).toBeTruthy();
 
     await fireEvent.changeText(
       getByLabelText("食べた量（1回分に対する倍率）"),
       "0.5",
     );
-    await fireEvent.press(getByLabelText("食事を保存する"));
+    await fireEvent.press(getByLabelText("食事記録を保存する"));
 
     await waitFor(() => expect(mealRepository.create).toHaveBeenCalledTimes(1));
     expect(mealRepository.create).toHaveBeenCalledWith(
@@ -62,7 +62,7 @@ describe("ライブラリ食品の食事追加画面", () => {
         sourceFoodId: "protein",
         date: "2026-09-03",
         mealType: "snack",
-        calories: 59,
+        calories: 61,
         protein: 11,
         fat: 1,
         carbs: 2,
@@ -89,7 +89,7 @@ describe("ライブラリ食品の食事追加画面", () => {
     await waitFor(() =>
       expect(getByText("指定した食品が見つかりません")).toBeTruthy(),
     );
-    expect(queryByLabelText("食事を保存する")).toBeNull();
+    expect(queryByLabelText("食事記録を保存する")).toBeNull();
   });
 
   it("食品取得に失敗した場合は再試行できる", async () => {

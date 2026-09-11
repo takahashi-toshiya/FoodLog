@@ -37,8 +37,8 @@ export function AddFoodScreen({
       initialValues={INITIAL_VALUES}
       onCancel={onCancel}
       onSubmit={handleSubmit}
-      submitLabel="食品を保存"
-      title="食品を登録"
+      submitLabel="ライブラリに保存"
+      title="ライブラリに食品を追加"
     />
   );
 }
