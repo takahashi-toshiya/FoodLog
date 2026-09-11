@@ -61,6 +61,7 @@ export function AddLibraryFoodToMealScreen({
   if (loadState.status === "ready") {
     return (
       <AddMealScreen
+        foodRepository={foodRepository}
         initialDate={initialDate}
         initialMealType={initialMealType}
         initialPreset={loadState.preset}

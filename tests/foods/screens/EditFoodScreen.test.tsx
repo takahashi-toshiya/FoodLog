@@ -37,7 +37,7 @@ describe("食品編集画面", () => {
   it("保存済みの値を初期表示し、編集内容を保存する", async () => {
     const repository = createRepository();
     const onSaved = jest.fn();
-    const { getByDisplayValue, getByLabelText } = await render(
+    const { getByDisplayValue, getByLabelText, getByText } = await render(
       <EditFoodScreen
         foodId="food-id"
         onCancel={jest.fn()}
@@ -47,11 +47,13 @@ describe("食品編集画面", () => {
     );
 
     await waitFor(() => expect(getByDisplayValue("玄米")).toBeTruthy());
+    expect(getByText("ライブラリの食品を編集")).toBeTruthy();
+    expect(getByText("ライブラリの変更を保存")).toBeTruthy();
     expect(getByDisplayValue("150")).toBeTruthy();
     expect(getByDisplayValue("炊飯後")).toBeTruthy();
 
     await fireEvent.changeText(getByLabelText("食品名"), "玄米ごはん");
-    await fireEvent.press(getByLabelText("変更を保存する"));
+    await fireEvent.press(getByLabelText("ライブラリの変更を保存する"));
 
     await waitFor(() => expect(repository.update).toHaveBeenCalledTimes(1));
     expect(repository.update).toHaveBeenCalledWith(
