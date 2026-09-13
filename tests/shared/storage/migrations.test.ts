@@ -3,7 +3,7 @@ import type { SQLiteDatabase } from "expo-sqlite";
 import { migrateDatabase } from "@/shared/storage/migrations";
 
 describe("DBマイグレーション", () => {
-  it("バージョン1のDBへ栄養目標テーブルと初期履歴を追加する", async () => {
+  it("バージョン1のDBへ栄養目標と食品セットのテーブルを追加する", async () => {
     const execAsync = jest.fn(async () => undefined);
     const db = {
       execAsync,
@@ -24,13 +24,50 @@ describe("DBマイグレーション", () => {
     expect(execAsync).toHaveBeenCalledWith(
       expect.stringContaining("PRAGMA user_version = 2"),
     );
+    expect(execAsync).toHaveBeenCalledWith(
+      expect.stringContaining("CREATE TABLE food_sets"),
+    );
+    expect(execAsync).toHaveBeenCalledWith(
+      expect.stringContaining("CREATE TABLE food_set_items"),
+    );
+    expect(execAsync).toHaveBeenCalledWith(
+      expect.stringContaining("ON DELETE RESTRICT"),
+    );
+    expect(execAsync).toHaveBeenCalledWith(
+      expect.stringContaining("UNIQUE (food_set_id, food_id)"),
+    );
+    expect(execAsync).toHaveBeenCalledWith(
+      expect.stringContaining("PRAGMA user_version = 3"),
+    );
+  });
+
+  it("バージョン2のDBへ食品セットのテーブルを追加する", async () => {
+    const execAsync = jest.fn(async () => undefined);
+    const withTransactionAsync = jest.fn(
+      async (callback: () => Promise<void>) => callback(),
+    );
+    const db = {
+      execAsync,
+      getFirstAsync: jest.fn(async () => ({ user_version: 2 })),
+      withTransactionAsync,
+    } as unknown as SQLiteDatabase;
+
+    await migrateDatabase(db);
+
+    expect(withTransactionAsync).toHaveBeenCalledTimes(1);
+    expect(execAsync).toHaveBeenCalledWith(
+      expect.stringContaining("CREATE TABLE food_sets"),
+    );
+    expect(execAsync).toHaveBeenCalledWith(
+      expect.stringContaining("PRAGMA user_version = 3"),
+    );
   });
 
   it("最新バージョンではスキーマを変更しない", async () => {
     const withTransactionAsync = jest.fn();
     const db = {
       execAsync: jest.fn(async () => undefined),
-      getFirstAsync: jest.fn(async () => ({ user_version: 2 })),
+      getFirstAsync: jest.fn(async () => ({ user_version: 3 })),
       withTransactionAsync,
     } as unknown as SQLiteDatabase;
 

@@ -2,6 +2,7 @@ import type { SQLiteDatabase } from "expo-sqlite";
 
 const MEAL_SCHEMA_VERSION = 1;
 const NUTRITION_GOAL_SCHEMA_VERSION = 2;
+const FOOD_SET_SCHEMA_VERSION = 3;
 
 export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
   await db.execAsync("PRAGMA foreign_keys = ON");
@@ -85,6 +86,41 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
         );
 
         PRAGMA user_version = ${NUTRITION_GOAL_SCHEMA_VERSION};
+      `);
+    });
+  }
+
+  if (currentVersion < FOOD_SET_SCHEMA_VERSION) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(`
+        CREATE TABLE food_sets (
+          id TEXT PRIMARY KEY NOT NULL,
+          name TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE food_set_items (
+          id TEXT PRIMARY KEY NOT NULL,
+          food_set_id TEXT NOT NULL,
+          food_id TEXT NOT NULL,
+          serving_multiplier REAL NOT NULL CHECK (serving_multiplier > 0),
+          sort_order INTEGER NOT NULL CHECK (sort_order >= 0),
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL,
+          FOREIGN KEY (food_set_id)
+            REFERENCES food_sets(id)
+            ON DELETE CASCADE,
+          FOREIGN KEY (food_id)
+            REFERENCES foods(id)
+            ON DELETE RESTRICT,
+          UNIQUE (food_set_id, food_id)
+        );
+
+        CREATE INDEX food_set_items_food_id_index
+          ON food_set_items (food_id);
+
+        PRAGMA user_version = ${FOOD_SET_SCHEMA_VERSION};
       `);
     });
   }
