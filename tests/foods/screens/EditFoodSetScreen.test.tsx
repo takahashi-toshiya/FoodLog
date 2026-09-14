@@ -55,6 +55,7 @@ function createFoodSetRepository(
     delete: jest.fn(),
     findAll: jest.fn(),
     findById: jest.fn(async () => foodSet),
+    isFoodUsed: jest.fn(),
     update: jest.fn(async () => ({ ...FOOD_SET, name: "更新後" })),
   };
 }

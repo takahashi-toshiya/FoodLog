@@ -4,6 +4,33 @@ import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import { FOOD_ITEM_FIXTURES } from "@/foods/fixtures/foodItems";
 import { FoodLibraryScreen } from "@/foods/screens/FoodLibraryScreen";
 import type { FoodRepository } from "@/foods/storage/FoodRepository";
+import type { FoodSetRepository } from "@/foods/storage/FoodSetRepository";
+import type { FoodSet } from "@/foods/types/foodSet";
+
+const FOOD_SET: FoodSet = {
+  id: "breakfast-set",
+  name: "いつもの朝食",
+  items: [
+    {
+      id: "set-item-1",
+      food: FOOD_ITEM_FIXTURES[0],
+      servingMultiplier: 1,
+      sortOrder: 0,
+      createdAt: "2026-09-14T00:00:00.000Z",
+      updatedAt: "2026-09-14T00:00:00.000Z",
+    },
+    {
+      id: "set-item-2",
+      food: FOOD_ITEM_FIXTURES[1],
+      servingMultiplier: 0.5,
+      sortOrder: 1,
+      createdAt: "2026-09-14T00:00:00.000Z",
+      updatedAt: "2026-09-14T00:00:00.000Z",
+    },
+  ],
+  createdAt: "2026-09-14T00:00:00.000Z",
+  updatedAt: "2026-09-14T00:00:00.000Z",
+};
 
 describe("ライブラリ画面", () => {
   function createRepository(foods = [...FOOD_ITEM_FIXTURES]): FoodRepository {
@@ -16,15 +43,34 @@ describe("ライブラリ画面", () => {
     };
   }
 
+  function createFoodSetRepository(
+    foodSets: FoodSet[] = [FOOD_SET],
+  ): FoodSetRepository {
+    return {
+      create: jest.fn(),
+      delete: jest.fn(),
+      findAll: jest.fn(async () => foodSets),
+      findById: jest.fn(),
+      isFoodUsed: jest.fn(async () => false),
+      update: jest.fn(),
+    };
+  }
+
   function renderScreen(
     repository = createRepository(),
     onSelectFood = jest.fn(),
     onEditFood = jest.fn(),
+    foodSetRepository = createFoodSetRepository(),
+    onAddFoodSet = jest.fn(),
+    onEditFoodSet = jest.fn(),
   ) {
     return render(
       <FoodLibraryScreen
+        foodSetRepository={foodSetRepository}
         onAddFood={jest.fn()}
+        onAddFoodSet={onAddFoodSet}
         onEditFood={onEditFood}
+        onEditFoodSet={onEditFoodSet}
         onSelectFood={onSelectFood}
         repository={repository}
       />,
@@ -75,14 +121,99 @@ describe("ライブラリ画面", () => {
     expect(getByText("＋ 食品を追加")).toBeTruthy();
   });
 
-  it("セットを選択するとセット用の空状態を表示する", async () => {
+  it("セットタブに登録済みセットと合計栄養値を表示する", async () => {
     const { getByText } = await renderScreen();
 
     await waitFor(() => expect(getByText("プロテイン")).toBeTruthy());
 
     await fireEvent.press(getByText("セット"));
 
-    expect(getByText("セットはまだありません")).toBeTruthy();
+    await waitFor(() => expect(getByText("いつもの朝食")).toBeTruthy());
+    expect(getByText("2品 · 166 kcal")).toBeTruthy();
+    expect(getByText("P 27 / F 2 / C 10")).toBeTruthy();
+  });
+
+  it("セットが未登録の場合は登録用の空状態を表示する", async () => {
+    const { getByText } = await renderScreen(
+      createRepository(),
+      jest.fn(),
+      jest.fn(),
+      createFoodSetRepository([]),
+    );
+
+    await fireEvent.press(getByText("セット"));
+
+    await waitFor(() =>
+      expect(getByText("セットはまだありません")).toBeTruthy(),
+    );
+    expect(getByText("＋ セットを追加")).toBeTruthy();
+  });
+
+  it("セットタブの追加ボタンからセット登録を開く", async () => {
+    const onAddFoodSet = jest.fn();
+    const { getByLabelText, getByText } = await renderScreen(
+      createRepository(),
+      jest.fn(),
+      jest.fn(),
+      createFoodSetRepository(),
+      onAddFoodSet,
+    );
+
+    await fireEvent.press(getByText("セット"));
+    await fireEvent.press(getByLabelText("セットを追加"));
+
+    expect(onAddFoodSet).toHaveBeenCalledTimes(1);
+  });
+
+  it("セットメニューから対象セットを編集できる", async () => {
+    const onEditFoodSet = jest.fn();
+    jest
+      .spyOn(Alert, "alert")
+      .mockImplementation((_title, _message, buttons) => {
+        buttons?.[0]?.onPress?.();
+      });
+    const { getByLabelText, getByText } = await renderScreen(
+      createRepository(),
+      jest.fn(),
+      jest.fn(),
+      createFoodSetRepository(),
+      jest.fn(),
+      onEditFoodSet,
+    );
+
+    await fireEvent.press(getByText("セット"));
+    await waitFor(() => expect(getByText("いつもの朝食")).toBeTruthy());
+    await fireEvent.press(getByLabelText("いつもの朝食のメニューを開く"));
+
+    expect(onEditFoodSet).toHaveBeenCalledWith("breakfast-set");
+  });
+
+  it("削除を承認するとセットを削除して一覧を再取得する", async () => {
+    const foodSetRepository = createFoodSetRepository();
+    let alertCount = 0;
+    jest
+      .spyOn(Alert, "alert")
+      .mockImplementation((_title, _message, buttons) => {
+        const buttonIndex = 1;
+        alertCount += 1;
+        buttons?.[buttonIndex]?.onPress?.();
+      });
+    const { getByLabelText, getByText } = await renderScreen(
+      createRepository(),
+      jest.fn(),
+      jest.fn(),
+      foodSetRepository,
+    );
+
+    await fireEvent.press(getByText("セット"));
+    await waitFor(() => expect(getByText("いつもの朝食")).toBeTruthy());
+    await fireEvent.press(getByLabelText("いつもの朝食のメニューを開く"));
+
+    await waitFor(() =>
+      expect(foodSetRepository.delete).toHaveBeenCalledWith("breakfast-set"),
+    );
+    expect(foodSetRepository.findAll).toHaveBeenCalledTimes(2);
+    expect(alertCount).toBe(2);
   });
 
   it("食品カードを押すと選択した食品を通知する", async () => {
@@ -155,6 +286,38 @@ describe("ライブラリ画面", () => {
     expect(repository.delete).not.toHaveBeenCalled();
   });
 
+  it("セットで使用中の食品は削除しない", async () => {
+    const repository = createRepository();
+    const foodSetRepository = createFoodSetRepository();
+    const isFoodUsed = foodSetRepository.isFoodUsed as jest.MockedFunction<
+      FoodSetRepository["isFoodUsed"]
+    >;
+    isFoodUsed.mockResolvedValue(true);
+    jest
+      .spyOn(Alert, "alert")
+      .mockImplementation((_title, _message, buttons) => {
+        buttons?.[1]?.onPress?.();
+      });
+    const { getByLabelText, getByText } = await renderScreen(
+      repository,
+      jest.fn(),
+      jest.fn(),
+      foodSetRepository,
+    );
+
+    await waitFor(() => expect(getByText("プロテイン")).toBeTruthy());
+    await fireEvent.press(getByLabelText("プロテインのメニューを開く"));
+
+    await waitFor(() =>
+      expect(
+        getByText(
+          "この食品はセットで使用中です。セットから外してから削除してください",
+        ),
+      ).toBeTruthy(),
+    );
+    expect(repository.delete).not.toHaveBeenCalled();
+  });
+
   it("食品の取得に失敗した場合は再読み込みできる", async () => {
     const consoleError = jest
       .spyOn(console, "error")
@@ -174,6 +337,35 @@ describe("ライブラリ画面", () => {
     await fireEvent.press(getByText("もう一度読み込む"));
 
     await waitFor(() => expect(getByText("プロテイン")).toBeTruthy());
+    expect(findAll).toHaveBeenCalledTimes(2);
+    consoleError.mockRestore();
+  });
+
+  it("食品セットの取得に失敗した場合は再読み込みできる", async () => {
+    const consoleError = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const foodSetRepository = createFoodSetRepository();
+    const findAll = foodSetRepository.findAll as jest.MockedFunction<
+      FoodSetRepository["findAll"]
+    >;
+    findAll
+      .mockRejectedValueOnce(new Error("database error"))
+      .mockResolvedValueOnce([FOOD_SET]);
+    const { getByText } = await renderScreen(
+      createRepository(),
+      jest.fn(),
+      jest.fn(),
+      foodSetRepository,
+    );
+
+    await fireEvent.press(getByText("セット"));
+    await waitFor(() =>
+      expect(getByText("食品セットを読み込めませんでした")).toBeTruthy(),
+    );
+    await fireEvent.press(getByText("もう一度読み込む"));
+
+    await waitFor(() => expect(getByText("いつもの朝食")).toBeTruthy());
     expect(findAll).toHaveBeenCalledTimes(2);
     consoleError.mockRestore();
   });

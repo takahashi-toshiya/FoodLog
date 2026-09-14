@@ -41,6 +41,7 @@ function createFoodSetRepository(): FoodSetRepository {
     delete: jest.fn(),
     findAll: jest.fn(),
     findById: jest.fn(),
+    isFoodUsed: jest.fn(),
     update: jest.fn(),
   };
 }

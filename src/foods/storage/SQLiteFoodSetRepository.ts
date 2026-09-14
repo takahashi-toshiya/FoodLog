@@ -136,6 +136,17 @@ export class SQLiteFoodSetRepository implements FoodSetRepository {
     return mapFoodSetRows(rows)[0] ?? null;
   }
 
+  async isFoodUsed(foodId: string): Promise<boolean> {
+    const row = await this.db.getFirstAsync<{ item_count: number }>(
+      `SELECT COUNT(*) AS item_count
+       FROM food_set_items
+       WHERE food_id = ?`,
+      foodId,
+    );
+
+    return (row?.item_count ?? 0) > 0;
+  }
+
   async create(input: CreateFoodSetInput): Promise<FoodSet> {
     assertItemsExist(input.items);
 

@@ -116,6 +116,19 @@ describe("SQLite食品セットRepository", () => {
     await expect(repository.findById("missing")).resolves.toBeNull();
   });
 
+  it("食品がセットで使用中か確認する", async () => {
+    const getFirstAsync = jest.fn(async () => ({ item_count: 1 }));
+    const repository = new SQLiteFoodSetRepository({
+      getFirstAsync,
+    } as unknown as SQLiteDatabase);
+
+    await expect(repository.isFoodUsed("food-1")).resolves.toBe(true);
+    expect(getFirstAsync).toHaveBeenCalledWith(
+      expect.stringContaining("FROM food_set_items"),
+      "food-1",
+    );
+  });
+
   it("セットと複数項目を1つのトランザクションで登録する", async () => {
     const runAsync = jest.fn(async () => ({ changes: 1 }));
     const withTransactionAsync = jest.fn(

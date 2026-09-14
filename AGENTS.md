@@ -8,6 +8,7 @@
 - `tests/`：アプリコードに対応する自動テスト
 - `assets/`：画像、アイコン、フォントなどの静的ファイル
 - `docs/`：要件、技術方針、開発ルール
+- `docs/component-map.md`：画面ごとのUIコンポーネント構成
 - `docs/plans/`：機能単位の実装計画
 - `prototype/`：ブラウザ版UIプロトタイプ。製品コードからは使用しない
 - `.codex/`：CodexのHookなど、AI開発環境の設定
@@ -26,5 +27,6 @@
 - ブランチ、コミット、Pull Requestを操作する：`docs/git-workflow.md`
 - 機能を実装する：`docs/requirements.md`と、対応する`docs/plans/`内の実装計画
 - UIを実装・変更する：対応する実装計画と`prototype/`の該当画面
+- UIの構成を確認・変更する：`docs/component-map.md`
 
 複数の項目に該当する場合は、必要な資料を組み合わせて読む。対応する実装計画が存在しない場合は、実装前に作成が必要か判断する。
