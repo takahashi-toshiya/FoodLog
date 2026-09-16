@@ -69,8 +69,32 @@ export class SQLiteMealRepository implements MealRepository {
   }
 
   async create(input: CreateMealEntryInput): Promise<MealEntry> {
-    const id = Crypto.randomUUID();
     const timestamp = new Date().toISOString();
+    return this.insert(input, timestamp);
+  }
+
+  async createMany(inputs: CreateMealEntryInput[]): Promise<MealEntry[]> {
+    if (inputs.length === 0) {
+      return [];
+    }
+
+    const timestamp = new Date().toISOString();
+    const entries: MealEntry[] = [];
+
+    await this.db.withTransactionAsync(async () => {
+      for (const input of inputs) {
+        entries.push(await this.insert(input, timestamp));
+      }
+    });
+
+    return entries;
+  }
+
+  private async insert(
+    input: CreateMealEntryInput,
+    timestamp: string,
+  ): Promise<MealEntry> {
+    const id = Crypto.randomUUID();
 
     await this.db.runAsync(
       `INSERT INTO meal_entries (

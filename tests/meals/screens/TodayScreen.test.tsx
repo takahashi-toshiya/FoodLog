@@ -49,6 +49,7 @@ describe("今日画面", () => {
   function createRepository(): MealRepository {
     return {
       create: jest.fn(),
+      createMany: jest.fn(),
       delete: jest.fn(),
       findByDate: jest.fn(async (date: string) =>
         date === "2026-08-28" ? createMealEntryFixtures(date) : [],

@@ -25,6 +25,7 @@ const ENTRY: MealEntry = {
 function createRepository(entry: MealEntry | null = ENTRY): MealRepository {
   return {
     create: jest.fn(),
+    createMany: jest.fn(),
     delete: jest.fn(),
     findByDate: jest.fn(),
     findById: jest.fn(async () => entry),

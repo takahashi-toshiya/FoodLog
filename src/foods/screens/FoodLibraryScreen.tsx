@@ -11,41 +11,62 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { FoodCard } from "@/foods/components/FoodCard";
 import { FoodSearchInput } from "@/foods/components/FoodSearchInput";
+import { FoodSetCard } from "@/foods/components/FoodSetCard";
 import {
   LibraryCategoryTabs,
   type LibraryCategory,
 } from "@/foods/components/LibraryCategoryTabs";
 import { filterFoods } from "@/foods/services/filterFoods";
 import type { FoodRepository } from "@/foods/storage/FoodRepository";
+import type { FoodSetRepository } from "@/foods/storage/FoodSetRepository";
 import type { FoodItem } from "@/foods/types/food";
+import type { FoodSet } from "@/foods/types/foodSet";
 import { colors } from "@/shared/theme/colors";
 
 const CARD_COLORS = [colors.protein, colors.carbs, colors.fat];
 
 type FoodLibraryScreenProps = {
+  foodSetRepository: FoodSetRepository;
   repository: FoodRepository;
   onAddFood: () => void;
+  onAddFoodSet: () => void;
   onEditFood: (foodId: string) => void;
+  onEditFoodSet: (foodSetId: string) => void;
   onSelectFood: (food: FoodItem) => void;
+  onSelectFoodSet: (foodSet: FoodSet) => void;
   refreshToken?: number;
 };
 
+type LibraryListItem =
+  { kind: "food"; value: FoodItem } | { kind: "foodSet"; value: FoodSet };
+
 export function FoodLibraryScreen({
+  foodSetRepository,
   repository,
   onAddFood,
+  onAddFoodSet,
   onEditFood,
+  onEditFoodSet,
   onSelectFood,
+  onSelectFoodSet,
   refreshToken = 0,
 }: FoodLibraryScreenProps) {
   const [selectedCategory, setSelectedCategory] =
     useState<LibraryCategory>("foods");
   const [searchText, setSearchText] = useState("");
   const [foods, setFoods] = useState<FoodItem[]>([]);
+  const [foodSets, setFoodSets] = useState<FoodSet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFoodSetLoading, setIsFoodSetLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [foodSetLoadError, setFoodSetLoadError] = useState<string | null>(null);
   const [retryToken, setRetryToken] = useState(0);
+  const [foodSetRetryToken, setFoodSetRetryToken] = useState(0);
   const [actionError, setActionError] = useState<string | null>(null);
   const [deletingFoodId, setDeletingFoodId] = useState<string | null>(null);
+  const [deletingFoodSetId, setDeletingFoodSetId] = useState<string | null>(
+    null,
+  );
 
   const loadFoods = useCallback(async () => {
     setIsLoading(true);
@@ -61,9 +82,27 @@ export function FoodLibraryScreen({
     }
   }, [repository]);
 
+  const loadFoodSets = useCallback(async () => {
+    setIsFoodSetLoading(true);
+    setFoodSetLoadError(null);
+
+    try {
+      setFoodSets(await foodSetRepository.findAll());
+    } catch (error) {
+      console.error("食品セット一覧の取得に失敗しました", error);
+      setFoodSetLoadError("食品セットを読み込めませんでした");
+    } finally {
+      setIsFoodSetLoading(false);
+    }
+  }, [foodSetRepository]);
+
   useEffect(() => {
     void loadFoods();
   }, [loadFoods, refreshToken, retryToken]);
+
+  useEffect(() => {
+    void loadFoodSets();
+  }, [foodSetRetryToken, loadFoodSets, refreshToken]);
 
   const filteredFoods = useMemo(
     () => filterFoods(foods, searchText),
@@ -72,21 +111,36 @@ export function FoodLibraryScreen({
   const isSearching = searchText.trim().length > 0;
 
   function renderEmptyState() {
-    if (isLoading) {
+    const isCurrentLoading =
+      selectedCategory === "foods" ? isLoading : isFoodSetLoading;
+    const currentLoadError =
+      selectedCategory === "foods" ? loadError : foodSetLoadError;
+
+    if (isCurrentLoading) {
       return (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyTitle}>食品を読み込んでいます</Text>
+          <Text style={styles.emptyTitle}>
+            {selectedCategory === "foods"
+              ? "食品を読み込んでいます"
+              : "食品セットを読み込んでいます"}
+          </Text>
         </View>
       );
     }
 
-    if (loadError) {
+    if (currentLoadError) {
       return (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyTitle}>{loadError}</Text>
+          <Text style={styles.emptyTitle}>{currentLoadError}</Text>
           <Pressable
             accessibilityRole="button"
-            onPress={() => setRetryToken((current) => current + 1)}
+            onPress={() => {
+              if (selectedCategory === "foods") {
+                setRetryToken((current) => current + 1);
+              } else {
+                setFoodSetRetryToken((current) => current + 1);
+              }
+            }}
             style={styles.emptyAction}
           >
             <Text style={styles.emptyActionText}>もう一度読み込む</Text>
@@ -96,12 +150,23 @@ export function FoodLibraryScreen({
     }
 
     if (selectedCategory === "sets") {
+      if (foodSets.length > 0) {
+        return null;
+      }
+
       return (
         <View style={styles.emptyState}>
           <Text style={styles.emptyTitle}>セットはまだありません</Text>
           <Text style={styles.emptyDescription}>
-            セットの登録は今後の機能で追加します。
+            よく使う食品をまとめて、すばやく記録できます。
           </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={onAddFoodSet}
+            style={styles.emptyAction}
+          >
+            <Text style={styles.emptyActionText}>＋ セットを追加</Text>
+          </Pressable>
         </View>
       );
     }
@@ -138,7 +203,13 @@ export function FoodLibraryScreen({
     return null;
   }
 
-  const visibleFoods = selectedCategory === "foods" ? filteredFoods : [];
+  const visibleItems = useMemo<LibraryListItem[]>(
+    () =>
+      selectedCategory === "foods"
+        ? filteredFoods.map((food) => ({ kind: "food", value: food }))
+        : foodSets.map((foodSet) => ({ kind: "foodSet", value: foodSet })),
+    [filteredFoods, foodSets, selectedCategory],
+  );
 
   const handleDeleteFood = async (food: FoodItem) => {
     if (deletingFoodId) {
@@ -149,6 +220,13 @@ export function FoodLibraryScreen({
     setActionError(null);
 
     try {
+      if (await foodSetRepository.isFoodUsed(food.id)) {
+        setActionError(
+          "この食品はセットで使用中です。セットから外してから削除してください",
+        );
+        return;
+      }
+
       await repository.delete(food.id);
       await loadFoods();
     } catch (error) {
@@ -156,6 +234,27 @@ export function FoodLibraryScreen({
       setActionError("食品を削除できませんでした。もう一度お試しください");
     } finally {
       setDeletingFoodId(null);
+    }
+  };
+
+  const handleDeleteFoodSet = async (foodSet: FoodSet) => {
+    if (deletingFoodSetId) {
+      return;
+    }
+
+    setDeletingFoodSetId(foodSet.id);
+    setActionError(null);
+
+    try {
+      await foodSetRepository.delete(foodSet.id);
+      await loadFoodSets();
+    } catch (error) {
+      console.error("食品セットの削除に失敗しました", error);
+      setActionError(
+        "食品セットを削除できませんでした。もう一度お試しください",
+      );
+    } finally {
+      setDeletingFoodSetId(null);
     }
   };
 
@@ -186,6 +285,34 @@ export function FoodLibraryScreen({
     ]);
   };
 
+  const handleRequestDeleteFoodSet = (foodSet: FoodSet) => {
+    Alert.alert(`「${foodSet.name}」を削除しますか？`, undefined, [
+      { text: "キャンセル", style: "cancel" },
+      {
+        text: "削除",
+        style: "destructive",
+        onPress: () => handleDeleteFoodSet(foodSet),
+      },
+    ]);
+  };
+
+  const handleOpenFoodSetMenu = (foodSet: FoodSet) => {
+    Alert.alert(foodSet.name, "このセットの操作を選択してください", [
+      { text: "編集", onPress: () => onEditFoodSet(foodSet.id) },
+      {
+        text: "削除",
+        style: "destructive",
+        onPress: () => handleRequestDeleteFoodSet(foodSet),
+      },
+      { text: "キャンセル", style: "cancel" },
+    ]);
+  };
+
+  const isCurrentLoading =
+    selectedCategory === "foods" ? isLoading : isFoodSetLoading;
+  const currentLoadError =
+    selectedCategory === "foods" ? loadError : foodSetLoadError;
+
   return (
     <SafeAreaView edges={["top"]} style={styles.safeArea}>
       <View style={styles.screen}>
@@ -195,9 +322,11 @@ export function FoodLibraryScreen({
             <Text style={styles.title}>ライブラリ</Text>
           </View>
           <Pressable
-            accessibilityLabel="食品を追加"
+            accessibilityLabel={
+              selectedCategory === "foods" ? "食品を追加" : "セットを追加"
+            }
             accessibilityRole="button"
-            onPress={onAddFood}
+            onPress={selectedCategory === "foods" ? onAddFood : onAddFoodSet}
             style={styles.addButton}
           >
             <Text style={styles.addButtonText}>＋</Text>
@@ -206,9 +335,9 @@ export function FoodLibraryScreen({
 
         <FlatList
           contentContainerStyle={styles.listContent}
-          data={isLoading || loadError ? [] : visibleFoods}
+          data={isCurrentLoading || currentLoadError ? [] : visibleItems}
           keyboardShouldPersistTaps="handled"
-          keyExtractor={(food) => food.id}
+          keyExtractor={(item) => `${item.kind}-${item.value.id}`}
           ListEmptyComponent={renderEmptyState}
           ListHeaderComponent={
             <View>
@@ -216,26 +345,38 @@ export function FoodLibraryScreen({
                 onSelectCategory={setSelectedCategory}
                 selectedCategory={selectedCategory}
               />
-              <FoodSearchInput
-                onChangeText={setSearchText}
-                value={searchText}
-              />
+              {selectedCategory === "foods" ? (
+                <FoodSearchInput
+                  onChangeText={setSearchText}
+                  value={searchText}
+                />
+              ) : null}
               <Text style={styles.hint}>
-                項目を選ぶと、内容を確認して今日の食事に追加できます。
+                {selectedCategory === "foods"
+                  ? "項目を選ぶと、内容を確認して今日の食事に追加できます。"
+                  : "セットを選ぶと、追加先を確認して食事に追加できます。"}
               </Text>
               {actionError ? (
                 <Text style={styles.actionError}>{actionError}</Text>
               ) : null}
             </View>
           }
-          renderItem={({ item, index }) => (
-            <FoodCard
-              accentColor={CARD_COLORS[index % CARD_COLORS.length]}
-              food={item}
-              onPress={onSelectFood}
-              onPressMenu={handleOpenMenu}
-            />
-          )}
+          renderItem={({ item, index }) =>
+            item.kind === "food" ? (
+              <FoodCard
+                accentColor={CARD_COLORS[index % CARD_COLORS.length]}
+                food={item.value}
+                onPress={onSelectFood}
+                onPressMenu={handleOpenMenu}
+              />
+            ) : (
+              <FoodSetCard
+                foodSet={item.value}
+                onPress={onSelectFoodSet}
+                onPressMenu={handleOpenFoodSetMenu}
+              />
+            )
+          }
           showsVerticalScrollIndicator={false}
           style={styles.list}
         />
