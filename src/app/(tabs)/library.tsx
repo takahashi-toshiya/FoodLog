@@ -36,6 +36,12 @@ export default function LibraryRoute() {
       onSelectFood={(food) =>
         router.push({ pathname: "/add-meal", params: { foodId: food.id } })
       }
+      onSelectFoodSet={(foodSet) =>
+        router.push({
+          pathname: "/add-food-set-to-meal",
+          params: { foodSetId: foodSet.id },
+        })
+      }
       refreshToken={refreshToken}
       repository={repository}
     />

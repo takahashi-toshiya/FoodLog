@@ -33,6 +33,7 @@ type FoodLibraryScreenProps = {
   onEditFood: (foodId: string) => void;
   onEditFoodSet: (foodSetId: string) => void;
   onSelectFood: (food: FoodItem) => void;
+  onSelectFoodSet: (foodSet: FoodSet) => void;
   refreshToken?: number;
 };
 
@@ -47,6 +48,7 @@ export function FoodLibraryScreen({
   onEditFood,
   onEditFoodSet,
   onSelectFood,
+  onSelectFoodSet,
   refreshToken = 0,
 }: FoodLibraryScreenProps) {
   const [selectedCategory, setSelectedCategory] =
@@ -352,7 +354,7 @@ export function FoodLibraryScreen({
               <Text style={styles.hint}>
                 {selectedCategory === "foods"
                   ? "項目を選ぶと、内容を確認して今日の食事に追加できます。"
-                  : "セットの編集・削除はメニューから行えます。"}
+                  : "セットを選ぶと、追加先を確認して食事に追加できます。"}
               </Text>
               {actionError ? (
                 <Text style={styles.actionError}>{actionError}</Text>
@@ -370,6 +372,7 @@ export function FoodLibraryScreen({
             ) : (
               <FoodSetCard
                 foodSet={item.value}
+                onPress={onSelectFoodSet}
                 onPressMenu={handleOpenFoodSetMenu}
               />
             )

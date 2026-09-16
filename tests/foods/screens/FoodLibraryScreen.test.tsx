@@ -63,6 +63,7 @@ describe("ライブラリ画面", () => {
     foodSetRepository = createFoodSetRepository(),
     onAddFoodSet = jest.fn(),
     onEditFoodSet = jest.fn(),
+    onSelectFoodSet = jest.fn(),
   ) {
     return render(
       <FoodLibraryScreen
@@ -72,6 +73,7 @@ describe("ライブラリ画面", () => {
         onEditFood={onEditFood}
         onEditFoodSet={onEditFoodSet}
         onSelectFood={onSelectFood}
+        onSelectFoodSet={onSelectFoodSet}
         repository={repository}
       />,
     );
@@ -186,6 +188,25 @@ describe("ライブラリ画面", () => {
     await fireEvent.press(getByLabelText("いつもの朝食のメニューを開く"));
 
     expect(onEditFoodSet).toHaveBeenCalledWith("breakfast-set");
+  });
+
+  it("セットカードを押すと選択したセットを通知する", async () => {
+    const onSelectFoodSet = jest.fn();
+    const { getByLabelText, getByText } = await renderScreen(
+      createRepository(),
+      jest.fn(),
+      jest.fn(),
+      createFoodSetRepository(),
+      jest.fn(),
+      jest.fn(),
+      onSelectFoodSet,
+    );
+
+    await fireEvent.press(getByText("セット"));
+    await waitFor(() => expect(getByText("いつもの朝食")).toBeTruthy());
+    await fireEvent.press(getByLabelText("いつもの朝食を食事へ追加"));
+
+    expect(onSelectFoodSet).toHaveBeenCalledWith(FOOD_SET);
   });
 
   it("削除を承認するとセットを削除して一覧を再取得する", async () => {

@@ -6,29 +6,41 @@ import { colors } from "@/shared/theme/colors";
 
 type FoodSetCardProps = {
   foodSet: FoodSet;
+  onPress: (foodSet: FoodSet) => void;
   onPressMenu: (foodSet: FoodSet) => void;
 };
 
-export function FoodSetCard({ foodSet, onPressMenu }: FoodSetCardProps) {
+export function FoodSetCard({
+  foodSet,
+  onPress,
+  onPressMenu,
+}: FoodSetCardProps) {
   const totals = calculateFoodSetNutrition(foodSet);
 
   return (
     <View style={styles.card}>
-      <View style={styles.icon}>
-        <Text style={styles.iconText}>組</Text>
-      </View>
-      <View style={styles.content}>
-        <Text numberOfLines={1} style={styles.name}>
-          {foodSet.name}
-        </Text>
-        <Text style={styles.details}>
-          {foodSet.items.length}品 · {totals.calories} kcal
-        </Text>
-        <Text style={styles.nutrition}>
-          P {formatNumber(totals.protein)} / F {formatNumber(totals.fat)} / C{" "}
-          {formatNumber(totals.carbs)}
-        </Text>
-      </View>
+      <Pressable
+        accessibilityLabel={`${foodSet.name}を食事へ追加`}
+        accessibilityRole="button"
+        onPress={() => onPress(foodSet)}
+        style={styles.mainAction}
+      >
+        <View style={styles.icon}>
+          <Text style={styles.iconText}>組</Text>
+        </View>
+        <View style={styles.content}>
+          <Text numberOfLines={1} style={styles.name}>
+            {foodSet.name}
+          </Text>
+          <Text style={styles.details}>
+            {foodSet.items.length}品 · {totals.calories} kcal
+          </Text>
+          <Text style={styles.nutrition}>
+            P {formatNumber(totals.protein)} / F {formatNumber(totals.fat)} / C{" "}
+            {formatNumber(totals.carbs)}
+          </Text>
+        </View>
+      </Pressable>
       <Pressable
         accessibilityLabel={`${foodSet.name}のメニューを開く`}
         accessibilityRole="button"
@@ -57,7 +69,15 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 9,
     minHeight: 76,
-    padding: 11,
+    padding: 8,
+  },
+  mainAction: {
+    alignItems: "center",
+    flex: 1,
+    flexDirection: "row",
+    gap: 10,
+    minHeight: 58,
+    padding: 3,
   },
   icon: {
     alignItems: "center",

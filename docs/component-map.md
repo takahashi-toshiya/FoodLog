@@ -27,6 +27,7 @@ flowchart TD
   RootLayout --> EditFoodRoute["EditFoodRoute"]
   RootLayout --> AddFoodSetRoute["AddFoodSetRoute"]
   RootLayout --> EditFoodSetRoute["EditFoodSetRoute"]
+  RootLayout --> AddFoodSetToMealRoute["AddFoodSetToMealRoute"]
   RootLayout --> EditNutritionGoalRoute["EditNutritionGoalRoute"]
 ```
 
@@ -103,6 +104,15 @@ flowchart TD
   FoodSelectionModal --> FoodSearchInput["FoodSearchInput<br/>食品を検索"]
   FoodSelectionModal --> FoodCard["FoodCard × 件数<br/>選択可能な食品"]
   FoodSelectionModal -. 読み込み中・空・失敗 .-> SelectionStatus["StatusMessage（内部）<br/>一覧の状態を表示"]
+```
+
+## 食品セットの食事追加画面
+
+```mermaid
+flowchart TD
+  AddFoodSetToMealRoute["AddFoodSetToMealRoute"] --> AddFoodSetToMealScreen["AddFoodSetToMealScreen<br/>セット内容と追加先を確認"]
+  AddFoodSetToMealScreen -. 日付を選ぶとき .-> DatePickerModal["DatePickerModal<br/>追加先の日付を選択"]
+  AddFoodSetToMealScreen -. 読み込み中・未検出・失敗 .-> FoodSetMealStatus["StatusScreen（内部）<br/>状態と再試行・閉じる操作"]
 ```
 
 ## 設定画面
