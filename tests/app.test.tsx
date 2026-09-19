@@ -1,9 +1,10 @@
 import { render, waitFor } from "@testing-library/react-native";
 
 import { createMealEntryFixtures } from "@/meals/fixtures/mealEntries";
-import { TodayScreen } from "@/meals/screens/TodayScreen";
 import type { MealRepository } from "@/meals/storage/MealRepository";
 import type { NutritionGoalRepository } from "@/settings/storage/NutritionGoalRepository";
+import { TodayScreen } from "@/today/screens/TodayScreen";
+import type { WeightRepository } from "@/weights/storage/WeightRepository";
 
 describe("FoodLogアプリ", () => {
   it("今日画面を表示する", async () => {
@@ -28,10 +29,15 @@ describe("FoodLogアプリ", () => {
       })),
       save: jest.fn(),
     };
+    const weightRepository: WeightRepository = {
+      findByDate: jest.fn(async () => null),
+      save: jest.fn(),
+    };
     const { getByText } = await render(
       <TodayScreen
         nutritionGoalRepository={nutritionGoalRepository}
         repository={repository}
+        weightRepository={weightRepository}
       />,
     );
 

@@ -31,6 +31,8 @@ FoodLog/
 │   │   └── fixtures/        # 開発・テスト用の仮データ
 │   ├── foods/               # よく使う食品とセット機能
 │   ├── settings/            # 目標値などの設定機能
+│   ├── today/               # 日付選択と日次記録画面の構成
+│   ├── weights/             # 体重記録機能
 │   └── shared/              # 複数機能で共有するコード
 │       ├── components/      # 共通UI
 │       ├── theme/           # 色、余白、文字スタイル

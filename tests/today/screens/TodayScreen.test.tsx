@@ -2,9 +2,10 @@ import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import type { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 
 import { createMealEntryFixtures } from "@/meals/fixtures/mealEntries";
-import { TodayScreen } from "@/meals/screens/TodayScreen";
+import { TodayScreen } from "@/today/screens/TodayScreen";
 import type { MealRepository } from "@/meals/storage/MealRepository";
 import type { NutritionGoalRepository } from "@/settings/storage/NutritionGoalRepository";
+import type { WeightRepository } from "@/weights/storage/WeightRepository";
 
 jest.mock("@react-native-community/datetimepicker", () => {
   const { Pressable, Text } = jest.requireActual("react-native");
@@ -75,11 +76,35 @@ describe("今日画面", () => {
     };
   }
 
+  function createWeightRepository(): WeightRepository {
+    return {
+      findByDate: jest.fn(async (date) =>
+        date === "2026-08-28"
+          ? {
+              id: "weight-1",
+              recordedDate: date,
+              weightKg: 72.45,
+              createdAt: `${date}T00:00:00.000Z`,
+              updatedAt: `${date}T00:00:00.000Z`,
+            }
+          : null,
+      ),
+      save: jest.fn(async (input) => ({
+        id: "weight-1",
+        recordedDate: input.recordedDate,
+        weightKg: input.weightKg,
+        createdAt: `${input.recordedDate}T00:00:00.000Z`,
+        updatedAt: `${input.recordedDate}T00:00:00.000Z`,
+      })),
+    };
+  }
+
   it("当日の食事と栄養集計を表示する", async () => {
     const { getByText } = await render(
       <TodayScreen
         nutritionGoalRepository={createNutritionGoalRepository()}
         repository={createRepository()}
+        weightRepository={createWeightRepository()}
       />,
     );
 
@@ -96,6 +121,7 @@ describe("今日画面", () => {
       <TodayScreen
         nutritionGoalRepository={createNutritionGoalRepository()}
         repository={repository}
+        weightRepository={createWeightRepository()}
       />,
     );
 
@@ -109,6 +135,7 @@ describe("今日画面", () => {
       <TodayScreen
         nutritionGoalRepository={createNutritionGoalRepository()}
         repository={createRepository()}
+        weightRepository={createWeightRepository()}
       />,
     );
 
@@ -129,6 +156,7 @@ describe("今日画面", () => {
         initialDateRequestId="request-1"
         nutritionGoalRepository={createNutritionGoalRepository()}
         repository={repository}
+        weightRepository={createWeightRepository()}
       />,
     );
 
@@ -144,6 +172,7 @@ describe("今日画面", () => {
         initialDateRequestId="request-2"
         nutritionGoalRepository={createNutritionGoalRepository()}
         repository={repository}
+        weightRepository={createWeightRepository()}
       />,
     );
     await waitFor(() => expect(getByText("8月27日 木曜日")).toBeTruthy());
@@ -156,6 +185,7 @@ describe("今日画面", () => {
         nutritionGoalRepository={createNutritionGoalRepository()}
         onAddMeal={onAddMeal}
         repository={createRepository()}
+        weightRepository={createWeightRepository()}
       />,
     );
 
@@ -172,6 +202,7 @@ describe("今日画面", () => {
         nutritionGoalRepository={createNutritionGoalRepository()}
         onEditMeal={onEditMeal}
         repository={createRepository()}
+        weightRepository={createWeightRepository()}
       />,
     );
 
@@ -186,6 +217,7 @@ describe("今日画面", () => {
       <TodayScreen
         nutritionGoalRepository={createNutritionGoalRepository()}
         repository={createRepository()}
+        weightRepository={createWeightRepository()}
       />,
     );
 
@@ -205,6 +237,7 @@ describe("今日画面", () => {
       <TodayScreen
         nutritionGoalRepository={createNutritionGoalRepository()}
         repository={createRepository()}
+        weightRepository={createWeightRepository()}
       />,
     );
 
@@ -224,6 +257,7 @@ describe("今日画面", () => {
         initialDateKey="2026-08-27"
         nutritionGoalRepository={createNutritionGoalRepository()}
         repository={createRepository()}
+        weightRepository={createWeightRepository()}
       />,
     );
 
@@ -233,5 +267,91 @@ describe("今日画面", () => {
     await waitFor(() => expect(getByText("8月28日 金曜日")).toBeTruthy());
     expect(getByText("4件")).toBeTruthy();
     expect(queryByText("今日へ戻る")).toBeNull();
+  });
+
+  it("体重タブへ切り替えると選択日の体重を表示する", async () => {
+    const { getByLabelText, getByRole, getByText, queryByLabelText } =
+      await render(
+        <TodayScreen
+          nutritionGoalRepository={createNutritionGoalRepository()}
+          repository={createRepository()}
+          weightRepository={createWeightRepository()}
+        />,
+      );
+
+    await waitFor(() => expect(getByText("4件")).toBeTruthy());
+    await fireEvent.press(getByRole("tab", { name: "体重" }));
+
+    await waitFor(() => expect(getByText("72.45")).toBeTruthy());
+    expect(getByLabelText("体重を編集")).toBeTruthy();
+    expect(queryByLabelText("食事を追加")).toBeNull();
+  });
+
+  it("体重タブのまま日付を変更すると変更後の日付の記録を表示する", async () => {
+    const { getByLabelText, getByRole, getByText } = await render(
+      <TodayScreen
+        nutritionGoalRepository={createNutritionGoalRepository()}
+        repository={createRepository()}
+        weightRepository={createWeightRepository()}
+      />,
+    );
+
+    await fireEvent.press(getByRole("tab", { name: "体重" }));
+    await waitFor(() => expect(getByText("72.45")).toBeTruthy());
+    await fireEvent.press(getByLabelText("8月27日"));
+
+    await waitFor(() =>
+      expect(getByText("この日の体重は未記録です")).toBeTruthy(),
+    );
+    expect(
+      getByRole("tab", { name: "体重" }).props.accessibilityState.selected,
+    ).toBe(true);
+  });
+
+  it("未記録の日付へ体重を保存する", async () => {
+    const weightRepository = createWeightRepository();
+    weightRepository.findByDate = jest.fn(async () => null);
+    const { getByLabelText, getByRole, getByText } = await render(
+      <TodayScreen
+        nutritionGoalRepository={createNutritionGoalRepository()}
+        repository={createRepository()}
+        weightRepository={weightRepository}
+      />,
+    );
+
+    await fireEvent.press(getByRole("tab", { name: "体重" }));
+    await waitFor(() => expect(getByLabelText("体重を記録")).toBeTruthy());
+    await fireEvent.press(getByLabelText("体重を記録"));
+    await fireEvent.changeText(getByLabelText("体重"), "71.8");
+    await fireEvent.press(getByLabelText("体重を保存"));
+
+    await waitFor(() =>
+      expect(weightRepository.save).toHaveBeenCalledWith({
+        recordedDate: "2026-08-28",
+        weightKg: 71.8,
+      }),
+    );
+    expect(getByText("71.8")).toBeTruthy();
+  });
+
+  it("不正な体重は保存しない", async () => {
+    const weightRepository = createWeightRepository();
+    weightRepository.findByDate = jest.fn(async () => null);
+    const { getByLabelText, getByRole, getByText } = await render(
+      <TodayScreen
+        nutritionGoalRepository={createNutritionGoalRepository()}
+        repository={createRepository()}
+        weightRepository={weightRepository}
+      />,
+    );
+
+    await fireEvent.press(getByRole("tab", { name: "体重" }));
+    await waitFor(() => expect(getByLabelText("体重を記録")).toBeTruthy());
+    await fireEvent.press(getByLabelText("体重を記録"));
+    await fireEvent.changeText(getByLabelText("体重"), "0");
+    await fireEvent.press(getByLabelText("体重を保存"));
+
+    expect(getByText("0より大きい数値を入力してください")).toBeTruthy();
+    expect(weightRepository.save).not.toHaveBeenCalled();
   });
 });

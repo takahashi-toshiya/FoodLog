@@ -35,12 +35,17 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  TodayRoute["TodayRoute"] --> TodayScreen["TodayScreen<br/>選択日の食事記録を表示"]
+  TodayRoute["TodayRoute"] --> TodayScreen["TodayScreen<br/>選択日の日次記録を表示"]
   TodayScreen --> DateSelector["DateSelector<br/>前後の日付を選択"]
-  TodayScreen --> DailyNutritionSummary["DailyNutritionSummary<br/>カロリー・PFCの進捗を表示"]
+  TodayScreen --> TodayRecordTabs["TodayRecordTabs<br/>食事と体重を切り替え"]
+  TodayScreen -. 食事タブ .-> MealTabContent["MealTabContent<br/>食事タブの状態と操作を管理"]
+  MealTabContent --> DailyNutritionSummary["DailyNutritionSummary<br/>カロリー・PFCの進捗を表示"]
   DailyNutritionSummary --> MacroProgressRow["MacroProgressRow × 3（内部）<br/>P・F・Cの進捗行"]
-  TodayScreen --> MealSection["MealSection × 4<br/>朝食・昼食・夕食・間食を表示"]
+  MealTabContent --> MealSection["MealSection × 4<br/>朝食・昼食・夕食・間食を表示"]
   MealSection --> MealEntryRow["MealEntryRow（内部）<br/>食事記録の1行"]
+  TodayScreen -. 体重タブ .-> WeightTabContent["WeightTabContent<br/>体重タブの状態と操作を管理"]
+  WeightTabContent --> WeightRecordCard["WeightRecordCard<br/>選択日の体重を表示"]
+  WeightTabContent -. 体重を登録・編集 .-> WeightEntryModal["WeightEntryModal<br/>体重を入力"]
   TodayScreen -. カレンダーを開いたとき .-> DatePickerModal["DatePickerModal<br/>任意の日付を選択"]
 ```
 
