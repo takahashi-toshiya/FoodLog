@@ -109,3 +109,17 @@ CREATE TABLE food_set_items (
 CREATE INDEX food_set_items_food_id_index
   ON food_set_items (food_id);
 ```
+
+## `weight_records`
+
+日付ごとの体重をkg単位で保存する。
+
+```sql
+CREATE TABLE weight_records (
+  id TEXT PRIMARY KEY NOT NULL,
+  recorded_date TEXT NOT NULL UNIQUE,
+  weight_kg REAL NOT NULL CHECK (weight_kg > 0),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+```

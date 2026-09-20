@@ -3,6 +3,7 @@ import type { SQLiteDatabase } from "expo-sqlite";
 const MEAL_SCHEMA_VERSION = 1;
 const NUTRITION_GOAL_SCHEMA_VERSION = 2;
 const FOOD_SET_SCHEMA_VERSION = 3;
+const WEIGHT_SCHEMA_VERSION = 4;
 
 export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
   await db.execAsync("PRAGMA foreign_keys = ON");
@@ -121,6 +122,22 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
           ON food_set_items (food_id);
 
         PRAGMA user_version = ${FOOD_SET_SCHEMA_VERSION};
+      `);
+    });
+  }
+
+  if (currentVersion < WEIGHT_SCHEMA_VERSION) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(`
+        CREATE TABLE weight_records (
+          id TEXT PRIMARY KEY NOT NULL,
+          recorded_date TEXT NOT NULL UNIQUE,
+          weight_kg REAL NOT NULL CHECK (weight_kg > 0),
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        PRAGMA user_version = ${WEIGHT_SCHEMA_VERSION};
       `);
     });
   }

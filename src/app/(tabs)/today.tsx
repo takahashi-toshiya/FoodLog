@@ -2,10 +2,11 @@ import { useCallback, useMemo, useState } from "react";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 
-import { TodayScreen } from "@/meals/screens/TodayScreen";
 import { SQLiteMealRepository } from "@/meals/storage/SQLiteMealRepository";
 import type { MealType } from "@/meals/types/meal";
 import { SQLiteNutritionGoalRepository } from "@/settings/storage/SQLiteNutritionGoalRepository";
+import { TodayScreen } from "@/today/screens/TodayScreen";
+import { SQLiteWeightRepository } from "@/weights/storage/SQLiteWeightRepository";
 
 export default function TodayRoute() {
   const db = useSQLiteContext();
@@ -19,6 +20,7 @@ export default function TodayRoute() {
     () => new SQLiteNutritionGoalRepository(db),
     [db],
   );
+  const weightRepository = useMemo(() => new SQLiteWeightRepository(db), [db]);
   const [isFocused, setIsFocused] = useState(false);
 
   useFocusEffect(
@@ -48,6 +50,7 @@ export default function TodayRoute() {
       onEditMeal={handleEditMeal}
       nutritionGoalRepository={nutritionGoalRepository}
       repository={repository}
+      weightRepository={weightRepository}
     />
   );
 }
