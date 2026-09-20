@@ -3,7 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { colors } from "@/shared/theme/colors";
 
-export type AppTabKey = "today" | "library" | "settings";
+export type AppTabKey = "today" | "analysis" | "library" | "settings";
 
 type Tab = {
   key: AppTabKey;
@@ -13,6 +13,7 @@ type Tab = {
 
 const TABS: Tab[] = [
   { key: "today", icon: "⌂", label: "今日" },
+  { key: "analysis", icon: "⌁", label: "分析" },
   { key: "library", icon: "▤", label: "ライブラリ" },
   { key: "settings", icon: "⚙", label: "設定" },
 ];
