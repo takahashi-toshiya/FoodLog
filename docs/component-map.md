@@ -17,6 +17,7 @@ FoodLogの各画面が、どの自作コンポーネントで構成されてい�
 flowchart TD
   RootLayout["RootLayout<br/>アプリ全体のレイアウト"] --> TabLayout["TabLayout<br/>タブ画面のレイアウト"]
   TabLayout --> TodayRoute["TodayRoute"]
+  TabLayout --> AnalysisRoute["AnalysisRoute"]
   TabLayout --> LibraryRoute["LibraryRoute"]
   TabLayout --> SettingsRoute["SettingsRoute"]
   TabLayout --> AppTabBar["AppTabBar<br/>画面下部のタブバー"]
@@ -29,6 +30,16 @@ flowchart TD
   RootLayout --> EditFoodSetRoute["EditFoodSetRoute"]
   RootLayout --> AddFoodSetToMealRoute["AddFoodSetToMealRoute"]
   RootLayout --> EditNutritionGoalRoute["EditNutritionGoalRoute"]
+```
+
+## 分析画面
+
+```mermaid
+flowchart TD
+  AnalysisRoute["AnalysisRoute"] --> AnalysisScreen["AnalysisScreen<br/>期間内の食事量と体重変化を表示"]
+  AnalysisScreen --> AnalysisDateRangeSelector["AnalysisDateRangeSelector<br/>分析の開始日と終了日を選択"]
+  AnalysisScreen -. 記録あり .-> AnalysisSummary["AnalysisSummary<br/>平均カロリー・体重変化・推定消費を表示"]
+  AnalysisScreen -. 記録あり .-> CalorieWeightChart["CalorieWeightChart<br/>カロリーの棒と体重の線を複合表示"]
 ```
 
 ## 今日画面

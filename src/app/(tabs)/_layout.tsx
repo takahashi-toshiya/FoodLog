@@ -12,6 +12,10 @@ export default function TabLayout() {
       router.replace("/today");
     }
 
+    if (tab === "analysis") {
+      router.replace("/analysis");
+    }
+
     if (tab === "library") {
       router.replace("/library");
     }
@@ -29,6 +33,7 @@ export default function TabLayout() {
       )}
     >
       <Tabs.Screen name="today" options={{ title: "今日" }} />
+      <Tabs.Screen name="analysis" options={{ title: "分析" }} />
       <Tabs.Screen name="library" options={{ title: "ライブラリ" }} />
       <Tabs.Screen name="settings" options={{ title: "設定" }} />
     </Tabs>
@@ -36,6 +41,10 @@ export default function TabLayout() {
 }
 
 function getActiveTab(pathname: string): AppTabKey {
+  if (pathname.startsWith("/analysis")) {
+    return "analysis";
+  }
+
   if (pathname.startsWith("/settings")) {
     return "settings";
   }

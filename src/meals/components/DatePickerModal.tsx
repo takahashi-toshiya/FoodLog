@@ -16,6 +16,9 @@ import { colors } from "@/shared/theme/colors";
 type DatePickerModalProps = {
   isVisible: boolean;
   selectedDate: Date;
+  maximumDate?: Date;
+  minimumDate?: Date;
+  title?: string;
   onCancel: () => void;
   onSelectDate: (date: Date) => void;
 };
@@ -23,6 +26,9 @@ type DatePickerModalProps = {
 export function DatePickerModal({
   isVisible,
   selectedDate,
+  maximumDate,
+  minimumDate,
+  title = "日付を選択",
   onCancel,
   onSelectDate,
 }: DatePickerModalProps) {
@@ -58,6 +64,8 @@ export function DatePickerModal({
       <DateTimePicker
         accessibilityLabel="日付を選択"
         display="calendar"
+        maximumDate={maximumDate}
+        minimumDate={minimumDate}
         mode="date"
         onChange={handleChange}
         value={selectedDate}
@@ -74,10 +82,12 @@ export function DatePickerModal({
     >
       <View style={styles.overlay}>
         <View style={styles.dialog}>
-          <Text style={styles.title}>日付を選択</Text>
+          <Text style={styles.title}>{title}</Text>
           <DateTimePicker
             accessibilityLabel="日付を選択"
             display="inline"
+            maximumDate={maximumDate}
+            minimumDate={minimumDate}
             mode="date"
             onChange={handleChange}
             value={draftDate}
