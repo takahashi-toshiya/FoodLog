@@ -1,5 +1,11 @@
 import { Fragment } from "react";
-import { StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import Svg, {
   Circle,
   Line,
@@ -8,7 +14,10 @@ import Svg, {
   Text as SvgText,
 } from "react-native-svg";
 
-import type { AnalysisChartPoint } from "@/analysis/types/analysis";
+import type {
+  AnalysisChartPoint,
+  AnalysisReport,
+} from "@/analysis/types/analysis";
 import { colors } from "@/shared/theme/colors";
 
 const CHART_HEIGHT = 260;
@@ -18,18 +27,26 @@ const CALORIE_COLOR = colors.fat;
 const WEIGHT_COLOR = colors.primary;
 
 type CalorieWeightChartProps = {
+  granularity: AnalysisReport["granularity"];
   points: AnalysisChartPoint[];
   selectedKey: string | null;
   onSelectPoint: (key: string) => void;
 };
 
 export function CalorieWeightChart({
+  granularity,
   points,
   selectedKey,
   onSelectPoint,
 }: CalorieWeightChartProps) {
   const { width: windowWidth } = useWindowDimensions();
-  const width = Math.max(300, windowWidth - 32);
+  const visibleWidth = Math.max(300, windowWidth - 32);
+  const width = Math.max(
+    visibleWidth,
+    PADDING.left +
+      PADDING.right +
+      points.length * getMinimumSlotWidth(granularity),
+  );
   const plotWidth = width - PADDING.left - PADDING.right;
   const plotHeight = CHART_HEIGHT - PADDING.top - PADDING.bottom;
   const slotWidth = plotWidth / points.length;
@@ -55,167 +72,174 @@ export function CalorieWeightChart({
         <Legend color={WEIGHT_COLOR} label="体重" shape="line" />
       </View>
 
-      <Svg height={CHART_HEIGHT} width={width}>
-        {Y_AXIS_RATIOS.map((ratio) => {
-          const y = PADDING.top + plotHeight * ratio;
-          return (
-            <Line
-              key={ratio}
-              stroke={colors.border}
-              strokeWidth={1}
-              x1={PADDING.left}
-              x2={width - PADDING.right}
-              y1={y}
-              y2={y}
-            />
-          );
-        })}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={width > visibleWidth}
+      >
+        <Svg height={CHART_HEIGHT} width={width}>
+          {Y_AXIS_RATIOS.map((ratio) => {
+            const y = PADDING.top + plotHeight * ratio;
+            return (
+              <Line
+                key={ratio}
+                stroke={colors.border}
+                strokeWidth={1}
+                x1={PADDING.left}
+                x2={width - PADDING.right}
+                y1={y}
+                y2={y}
+              />
+            );
+          })}
 
-        <SvgText
-          fill={CALORIE_COLOR}
-          fontSize={9}
-          textAnchor="start"
-          x={4}
-          y={12}
-        >
-          kcal
-        </SvgText>
-        <SvgText
-          fill={WEIGHT_COLOR}
-          fontSize={9}
-          textAnchor="end"
-          x={width - 4}
-          y={12}
-        >
-          kg
-        </SvgText>
+          <SvgText
+            fill={CALORIE_COLOR}
+            fontSize={9}
+            textAnchor="start"
+            x={4}
+            y={12}
+          >
+            kcal
+          </SvgText>
+          <SvgText
+            fill={WEIGHT_COLOR}
+            fontSize={9}
+            textAnchor="end"
+            x={width - 4}
+            y={12}
+          >
+            kg
+          </SvgText>
 
-        {Y_AXIS_RATIOS.map((ratio) => {
-          const y = PADDING.top + plotHeight * ratio + 3;
-          const calories = Math.round(calorieMax * (1 - ratio));
-          const weight =
-            weightRange.max - (weightRange.max - weightRange.min) * ratio;
-          return (
-            <Fragment key={`labels-${ratio}`}>
-              <SvgText
-                fill={colors.textMuted}
-                fontSize={9}
-                textAnchor="end"
-                x={PADDING.left - 6}
-                y={y}
-              >
-                {calories.toLocaleString()}
-              </SvgText>
-              <SvgText
-                fill={colors.textMuted}
-                fontSize={9}
-                textAnchor="start"
-                x={width - PADDING.right + 6}
-                y={y}
-              >
-                {weight.toFixed(1)}
-              </SvgText>
-            </Fragment>
-          );
-        })}
+          {Y_AXIS_RATIOS.map((ratio) => {
+            const y = PADDING.top + plotHeight * ratio + 3;
+            const calories = Math.round(calorieMax * (1 - ratio));
+            const weight =
+              weightRange.max - (weightRange.max - weightRange.min) * ratio;
+            return (
+              <Fragment key={`labels-${ratio}`}>
+                <SvgText
+                  fill={colors.textMuted}
+                  fontSize={9}
+                  textAnchor="end"
+                  x={PADDING.left - 6}
+                  y={y}
+                >
+                  {calories.toLocaleString()}
+                </SvgText>
+                <SvgText
+                  fill={colors.textMuted}
+                  fontSize={9}
+                  textAnchor="start"
+                  x={width - PADDING.right + 6}
+                  y={y}
+                >
+                  {weight.toFixed(1)}
+                </SvgText>
+              </Fragment>
+            );
+          })}
 
-        {points.map((point, index) => {
-          if (point.calories === null) return null;
-          const barHeight = (point.calories / calorieMax) * plotHeight;
-          const barWidth = Math.max(3, Math.min(slotWidth * 0.58, 18));
-          return (
-            <Rect
-              fill={CALORIE_COLOR}
-              key={`calories-${point.key}`}
-              opacity={0.72}
-              rx={2}
-              width={barWidth}
-              x={getX(index, slotWidth) - barWidth / 2}
-              y={PADDING.top + plotHeight - barHeight}
-              height={barHeight}
-            />
-          );
-        })}
+          {points.map((point, index) => {
+            if (point.calories === null) return null;
+            const barHeight = (point.calories / calorieMax) * plotHeight;
+            const barWidth = Math.max(3, Math.min(slotWidth * 0.58, 18));
+            return (
+              <Rect
+                fill={CALORIE_COLOR}
+                key={`calories-${point.key}`}
+                opacity={0.72}
+                rx={2}
+                width={barWidth}
+                x={getX(index, slotWidth) - barWidth / 2}
+                y={PADDING.top + plotHeight - barHeight}
+                height={barHeight}
+              />
+            );
+          })}
 
-        {weightPolyline.includes(" ") && (
-          <Polyline
-            fill="none"
-            points={weightPolyline}
-            stroke={WEIGHT_COLOR}
-            strokeLinejoin="round"
-            strokeWidth={2.5}
-          />
-        )}
-
-        {points.map((point, index) =>
-          point.weightKg === null ? null : (
-            <Circle
-              cx={getX(index, slotWidth)}
-              cy={getWeightY(point.weightKg, weightRange, plotHeight)}
-              fill={colors.surface}
-              key={`weight-${point.key}`}
-              r={3.5}
+          {weightPolyline.includes(" ") && (
+            <Polyline
+              fill="none"
+              points={weightPolyline}
               stroke={WEIGHT_COLOR}
-              strokeWidth={2}
+              strokeLinejoin="round"
+              strokeWidth={2.5}
             />
-          ),
-        )}
+          )}
 
-        {points.map((point, index) => {
-          if (!shouldShowLabel(index, points.length)) return null;
-          return (
-            <SvgText
-              fill={colors.textMuted}
-              fontSize={8}
-              key={`label-${point.key}`}
-              textAnchor="middle"
-              x={getX(index, slotWidth)}
-              y={CHART_HEIGHT - 16}
-            >
-              {point.label}
-            </SvgText>
-          );
-        })}
+          {points.map((point, index) =>
+            point.weightKg === null ? null : (
+              <Circle
+                cx={getX(index, slotWidth)}
+                cy={getWeightY(point.weightKg, weightRange, plotHeight)}
+                fill={colors.surface}
+                key={`weight-${point.key}`}
+                r={3.5}
+                stroke={WEIGHT_COLOR}
+                strokeWidth={2}
+              />
+            ),
+          )}
 
-        {selectedPoint && (
-          <Line
-            stroke={colors.textMuted}
-            strokeDasharray="3 3"
-            strokeWidth={1}
-            x1={getX(points.indexOf(selectedPoint), slotWidth)}
-            x2={getX(points.indexOf(selectedPoint), slotWidth)}
-            y1={PADDING.top}
-            y2={PADDING.top + plotHeight}
-          />
-        )}
+          {points.map((point, index) => {
+            if (!shouldShowLabel(index, points.length)) return null;
+            return (
+              <SvgText
+                fill={colors.textMuted}
+                fontSize={8}
+                key={`label-${point.key}`}
+                textAnchor="middle"
+                x={getX(index, slotWidth)}
+                y={CHART_HEIGHT - 16}
+              >
+                {point.label}
+              </SvgText>
+            );
+          })}
 
-        {points.map((point, index) => (
-          <Rect
-            accessibilityLabel={`${point.label}の分析値を表示`}
-            fill="transparent"
-            height={plotHeight}
-            key={`target-${point.key}`}
-            onPress={() => onSelectPoint(point.key)}
-            width={slotWidth}
-            x={PADDING.left + index * slotWidth}
-            y={PADDING.top}
-          />
-        ))}
-      </Svg>
+          {selectedPoint && (
+            <Line
+              stroke={colors.textMuted}
+              strokeDasharray="3 3"
+              strokeWidth={1}
+              x1={getX(points.indexOf(selectedPoint), slotWidth)}
+              x2={getX(points.indexOf(selectedPoint), slotWidth)}
+              y1={PADDING.top}
+              y2={PADDING.top + plotHeight}
+            />
+          )}
+
+          {points.map((point, index) => (
+            <Rect
+              accessibilityLabel={`${point.label}の分析値を表示`}
+              fill="transparent"
+              height={plotHeight}
+              key={`target-${point.key}`}
+              onPress={() => onSelectPoint(point.key)}
+              width={slotWidth}
+              x={PADDING.left + index * slotWidth}
+              y={PADDING.top}
+            />
+          ))}
+        </Svg>
+      </ScrollView>
 
       {selectedPoint ? (
         <View style={styles.selectedValue}>
           <Text style={styles.selectedDate}>{selectedPoint.label}</Text>
           <Text style={styles.selectedText}>
-            摂取カロリー：{formatCalories(selectedPoint.calories)}
+            {granularity === "day" ? "摂取カロリー" : "平均摂取カロリー"}：
+            {formatCalories(selectedPoint.calories)}
           </Text>
           <Text style={styles.selectedText}>
-            体重：{formatWeight(selectedPoint.weightKg)}
+            {granularity === "day" ? "体重" : "平均体重"}：
+            {formatWeight(selectedPoint.weightKg)}
           </Text>
         </View>
       ) : (
         <Text style={styles.hint}>
-          棒または線の日付をタップすると値を確認できます
+          棒または線の期間をタップすると値を確認できます
         </Text>
       )}
     </View>
@@ -245,6 +269,14 @@ function Legend({ color, label, shape }: LegendProps) {
 
 function getX(index: number, slotWidth: number): number {
   return PADDING.left + slotWidth * index + slotWidth / 2;
+}
+
+function getMinimumSlotWidth(
+  granularity: AnalysisReport["granularity"],
+): number {
+  if (granularity === "day") return 8;
+  if (granularity === "week") return 24;
+  return 36;
 }
 
 function getCalorieMax(points: AnalysisChartPoint[]): number {

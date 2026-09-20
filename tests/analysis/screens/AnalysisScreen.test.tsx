@@ -5,36 +5,64 @@ import type { AnalysisRepository } from "@/analysis/storage/AnalysisRepository";
 import type { AnalysisSourceData } from "@/analysis/types/analysis";
 import { addDays, toDateKey } from "@/shared/utils/date";
 
+jest.mock("@/meals/components/DatePickerModal", () => {
+  const React = jest.requireActual("react");
+  const { Pressable, Text } = jest.requireActual("react-native");
+
+  return {
+    DatePickerModal: ({
+      isVisible,
+      onSelectDate,
+    }: {
+      isVisible: boolean;
+      onSelectDate: (date: Date) => void;
+    }) =>
+      isVisible
+        ? React.createElement(
+            Pressable,
+            {
+              accessibilityLabel: "テスト日付を選択",
+              onPress: () => onSelectDate(new Date("2026-08-01T00:00:00")),
+            },
+            React.createElement(Text, null, "テスト日付を選択"),
+          )
+        : null,
+  };
+});
+
 describe("分析画面", () => {
-  it("初期表示で4週間の集計値を表示する", async () => {
+  it("初期表示で今日までの30日を集計する", async () => {
     const repository = createRepository(createSource());
     const { getByText } = await render(
-      <AnalysisScreen endDateKey="2026-09-28" repository={repository} />,
+      <AnalysisScreen repository={repository} todayDateKey="2026-09-20" />,
     );
 
     await waitFor(() => expect(getByText("2,000 kcal/日")).toBeTruthy());
     expect(getByText("-1.0 kg")).toBeTruthy();
-    expect(getByText(/約2,285 kcal\/日/)).toBeTruthy();
-    expect(getByText("食事記録 28/28日")).toBeTruthy();
+    expect(getByText(/約2,266 kcal\/日/)).toBeTruthy();
+    expect(getByText("食事記録 30/30日")).toBeTruthy();
+    expect(getByText("2026/8/22")).toBeTruthy();
+    expect(getByText("2026/9/20")).toBeTruthy();
     expect(repository.findByDateRange).toHaveBeenCalledWith(
-      "2026-09-01",
-      "2026-09-28",
+      "2026-08-22",
+      "2026-09-20",
     );
   });
 
-  it("期間を変更すると変更後のデータを取得する", async () => {
+  it("開始日を選択すると変更後の範囲を取得する", async () => {
     const repository = createRepository(createSource());
-    const { getByText } = await render(
-      <AnalysisScreen endDateKey="2026-09-28" repository={repository} />,
+    const { getByLabelText, getByText } = await render(
+      <AnalysisScreen repository={repository} todayDateKey="2026-09-20" />,
     );
 
     await waitFor(() => expect(getByText("2,000 kcal/日")).toBeTruthy());
-    await fireEvent.press(getByText("8週間"));
+    await fireEvent.press(getByLabelText("分析期間の開始日を選択"));
+    await fireEvent.press(getByLabelText("テスト日付を選択"));
 
     await waitFor(() =>
       expect(repository.findByDateRange).toHaveBeenLastCalledWith(
-        "2026-08-04",
-        "2026-09-28",
+        "2026-08-01",
+        "2026-09-20",
       ),
     );
   });
@@ -42,11 +70,11 @@ describe("分析画面", () => {
   it("選択した日付のカロリーと体重を表示する", async () => {
     const repository = createRepository(createSource());
     const { getByLabelText, getByText } = await render(
-      <AnalysisScreen endDateKey="2026-09-28" repository={repository} />,
+      <AnalysisScreen repository={repository} todayDateKey="2026-09-20" />,
     );
 
     await waitFor(() => expect(getByText("2,000 kcal/日")).toBeTruthy());
-    await fireEvent.press(getByLabelText("9/1の分析値を表示"));
+    await fireEvent.press(getByLabelText("8/22の分析値を表示"));
 
     expect(getByText("摂取カロリー：2,000 kcal")).toBeTruthy();
     expect(getByText("体重：70.0 kg")).toBeTruthy();
@@ -58,7 +86,7 @@ describe("分析画面", () => {
       dailyWeights: [],
     });
     const { getByText } = await render(
-      <AnalysisScreen endDateKey="2026-09-28" repository={repository} />,
+      <AnalysisScreen repository={repository} todayDateKey="2026-09-20" />,
     );
 
     await waitFor(() =>
@@ -77,7 +105,7 @@ describe("分析画面", () => {
         .mockResolvedValueOnce(createSource()),
     };
     const { getByLabelText, getByText } = await render(
-      <AnalysisScreen endDateKey="2026-09-28" repository={repository} />,
+      <AnalysisScreen repository={repository} todayDateKey="2026-09-20" />,
     );
 
     await waitFor(() =>
@@ -97,15 +125,15 @@ function createRepository(source: AnalysisSourceData): AnalysisRepository {
 }
 
 function createSource(): AnalysisSourceData {
-  const start = new Date("2026-09-01T00:00:00");
+  const start = new Date("2026-08-22T00:00:00");
   return {
-    dailyCalories: Array.from({ length: 28 }, (_, index) => ({
+    dailyCalories: Array.from({ length: 30 }, (_, index) => ({
       date: toDateKey(addDays(start, index)),
       calories: 2_000,
     })),
     dailyWeights: [
-      { date: "2026-09-01", weightKg: 70 },
-      { date: "2026-09-28", weightKg: 69 },
+      { date: "2026-08-22", weightKg: 70 },
+      { date: "2026-09-20", weightKg: 69 },
     ],
   };
 }

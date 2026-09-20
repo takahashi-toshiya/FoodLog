@@ -37,7 +37,7 @@ flowchart TD
 ```mermaid
 flowchart TD
   AnalysisRoute["AnalysisRoute"] --> AnalysisScreen["AnalysisScreen<br/>期間内の食事量と体重変化を表示"]
-  AnalysisScreen --> AnalysisPeriodSelector["AnalysisPeriodSelector<br/>1・4・8・16週間を切り替え"]
+  AnalysisScreen --> AnalysisDateRangeSelector["AnalysisDateRangeSelector<br/>分析の開始日と終了日を選択"]
   AnalysisScreen -. 記録あり .-> AnalysisSummary["AnalysisSummary<br/>平均カロリー・体重変化・推定消費を表示"]
   AnalysisScreen -. 記録あり .-> CalorieWeightChart["CalorieWeightChart<br/>カロリーの棒と体重の線を複合表示"]
 ```

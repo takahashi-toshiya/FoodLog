@@ -2,33 +2,36 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AnalysisPeriodSelector } from "@/analysis/components/AnalysisPeriodSelector";
+import { AnalysisDateRangeSelector } from "@/analysis/components/AnalysisDateRangeSelector";
 import { AnalysisSummary } from "@/analysis/components/AnalysisSummary";
 import { CalorieWeightChart } from "@/analysis/components/CalorieWeightChart";
 import {
   buildAnalysisReport,
-  getAnalysisDateRange,
+  getDefaultAnalysisDateRange,
 } from "@/analysis/services/dailyAnalysis";
 import type { AnalysisRepository } from "@/analysis/storage/AnalysisRepository";
-import type {
-  AnalysisPeriodWeeks,
-  AnalysisReport,
-} from "@/analysis/types/analysis";
+import type { AnalysisReport } from "@/analysis/types/analysis";
+import { DatePickerModal } from "@/meals/components/DatePickerModal";
 import { colors } from "@/shared/theme/colors";
 import { toDateKey } from "@/shared/utils/date";
 
 type AnalysisScreenProps = {
   repository: AnalysisRepository;
-  endDateKey?: string;
+  todayDateKey?: string;
   isFocused?: boolean;
 };
 
 export function AnalysisScreen({
   repository,
-  endDateKey = toDateKey(new Date()),
+  todayDateKey = toDateKey(new Date()),
   isFocused = true,
 }: AnalysisScreenProps) {
-  const [selectedPeriod, setSelectedPeriod] = useState<AnalysisPeriodWeeks>(4);
+  const [dateRange, setDateRange] = useState(() =>
+    getDefaultAnalysisDateRange(todayDateKey),
+  );
+  const [activeDateField, setActiveDateField] = useState<
+    "start" | "end" | null
+  >(null);
   const [report, setReport] = useState<AnalysisReport | null>(null);
   const [selectedPointKey, setSelectedPointKey] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,13 +45,14 @@ export function AnalysisScreen({
     setLoadError(null);
 
     try {
-      const range = getAnalysisDateRange(endDateKey, selectedPeriod);
       const source = await repository.findByDateRange(
-        range.startDate,
-        range.endDate,
+        dateRange.startDate,
+        dateRange.endDate,
       );
       if (loadRequestId.current === requestId) {
-        setReport(buildAnalysisReport(source, selectedPeriod, endDateKey));
+        setReport(
+          buildAnalysisReport(source, dateRange.startDate, dateRange.endDate),
+        );
         setSelectedPointKey(null);
       }
     } catch (error) {
@@ -62,7 +66,7 @@ export function AnalysisScreen({
         setIsLoading(false);
       }
     }
-  }, [endDateKey, repository, selectedPeriod]);
+  }, [dateRange.endDate, dateRange.startDate, repository]);
 
   useEffect(() => {
     if (isFocused) {
@@ -70,11 +74,18 @@ export function AnalysisScreen({
     }
   }, [isFocused, loadAnalysis]);
 
-  const handleSelectPeriod = (period: AnalysisPeriodWeeks) => {
+  const handleSelectDate = (date: Date) => {
+    if (!activeDateField) return;
+
+    const dateKey = toDateKey(date);
     setIsLoading(true);
-    setSelectedPeriod(period);
+    setDateRange((current) => ({
+      ...current,
+      [activeDateField === "start" ? "startDate" : "endDate"]: dateKey,
+    }));
     setReport(null);
     setSelectedPointKey(null);
+    setActiveDateField(null);
   };
 
   const hasData =
@@ -90,9 +101,11 @@ export function AnalysisScreen({
       </View>
 
       <View style={styles.periodContainer}>
-        <AnalysisPeriodSelector
-          onSelectPeriod={handleSelectPeriod}
-          selectedPeriod={selectedPeriod}
+        <AnalysisDateRangeSelector
+          endDate={dateRange.endDate}
+          onSelectEndDate={() => setActiveDateField("end")}
+          onSelectStartDate={() => setActiveDateField("start")}
+          startDate={dateRange.startDate}
         />
       </View>
 
@@ -122,6 +135,7 @@ export function AnalysisScreen({
         >
           <AnalysisSummary summary={report.summary} />
           <CalorieWeightChart
+            granularity={report.granularity}
             onSelectPoint={setSelectedPointKey}
             points={report.points}
             selectedKey={selectedPointKey}
@@ -131,6 +145,26 @@ export function AnalysisScreen({
           </Text>
         </ScrollView>
       )}
+
+      <DatePickerModal
+        isVisible={activeDateField !== null}
+        maximumDate={
+          activeDateField === "start"
+            ? parseDateKey(dateRange.endDate)
+            : parseDateKey(todayDateKey)
+        }
+        minimumDate={
+          activeDateField === "end"
+            ? parseDateKey(dateRange.startDate)
+            : undefined
+        }
+        onCancel={() => setActiveDateField(null)}
+        onSelectDate={handleSelectDate}
+        selectedDate={parseDateKey(
+          activeDateField === "end" ? dateRange.endDate : dateRange.startDate,
+        )}
+        title={activeDateField === "end" ? "終了日を選択" : "開始日を選択"}
+      />
     </SafeAreaView>
   );
 }
@@ -145,6 +179,10 @@ function StatusText({ children }: StatusTextProps) {
       <Text style={styles.statusText}>{children}</Text>
     </View>
   );
+}
+
+function parseDateKey(dateKey: string): Date {
+  return new Date(`${dateKey}T00:00:00`);
 }
 
 const styles = StyleSheet.create({

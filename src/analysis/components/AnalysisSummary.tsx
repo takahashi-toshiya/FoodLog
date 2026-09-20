@@ -76,7 +76,7 @@ function formatEstimatedExpenditure(summary: AnalysisSummaryValue): string {
   }
 
   if (summary.estimatedExpenditureStatus === "notApplicable") {
-    return "4週間以上で表示";
+    return "28日以上で表示";
   }
 
   return "データ不足";

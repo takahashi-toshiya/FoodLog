@@ -1,5 +1,3 @@
-export type AnalysisPeriodWeeks = 1 | 4 | 8 | 16;
-
 export type DailyCalorieRecord = {
   date: string;
   calories: number;
@@ -40,7 +38,7 @@ export type AnalysisSummary = {
 export type AnalysisReport = {
   startDate: string;
   endDate: string;
-  granularity: "day" | "week";
+  granularity: "day" | "week" | "month";
   points: AnalysisChartPoint[];
   summary: AnalysisSummary;
 };

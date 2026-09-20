@@ -1,14 +1,16 @@
 import type {
   AnalysisChartPoint,
-  AnalysisPeriodWeeks,
   AnalysisReport,
   AnalysisSourceData,
   AnalysisSummary,
 } from "@/analysis/types/analysis";
 import { addDays, toDateKey } from "@/shared/utils/date";
 
+const DEFAULT_RANGE_DAYS = 30;
+const DAILY_GRANULARITY_MAX_DAYS = 31;
+const WEEKLY_GRANULARITY_MAX_DAYS = 180;
 const DAYS_PER_WEEK = 7;
-const MINIMUM_ESTIMATE_WEEKS = 4;
+const MINIMUM_ESTIMATE_RANGE_DAYS = 28;
 const MINIMUM_ESTIMATE_DAYS = 14;
 const MINIMUM_MEAL_COVERAGE = 0.8;
 const KCAL_PER_KG = 7_700;
@@ -19,37 +21,50 @@ type DailyPoint = {
   weightKg: number | null;
 };
 
-export function getAnalysisDateRange(
-  endDate: string,
-  periodWeeks: AnalysisPeriodWeeks,
-): { startDate: string; endDate: string } {
-  const totalDays = periodWeeks * DAYS_PER_WEEK;
-  const end = parseDateKey(endDate);
-
+export function getDefaultAnalysisDateRange(endDate: string): {
+  startDate: string;
+  endDate: string;
+} {
   return {
-    startDate: toDateKey(addDays(end, -(totalDays - 1))),
+    startDate: toDateKey(
+      addDays(parseDateKey(endDate), -(DEFAULT_RANGE_DAYS - 1)),
+    ),
     endDate,
   };
 }
 
 export function buildAnalysisReport(
   source: AnalysisSourceData,
-  periodWeeks: AnalysisPeriodWeeks,
+  startDate: string,
   endDate: string,
 ): AnalysisReport {
-  const range = getAnalysisDateRange(endDate, periodWeeks);
-  const dailyPoints = createDailyPoints(source, range.startDate, range.endDate);
-  const granularity = periodWeeks >= 8 ? "week" : "day";
+  const dailyPoints = createDailyPoints(source, startDate, endDate);
+  const granularity = getGranularity(dailyPoints.length);
 
   return {
-    ...range,
+    startDate,
+    endDate,
     granularity,
     points:
-      granularity === "week"
-        ? createWeeklyPoints(dailyPoints)
-        : dailyPoints.map(toDailyChartPoint),
-    summary: createSummary(dailyPoints, periodWeeks),
+      granularity === "day"
+        ? dailyPoints.map(toDailyChartPoint)
+        : granularity === "week"
+          ? createWeeklyPoints(dailyPoints)
+          : createMonthlyPoints(dailyPoints),
+    summary: createSummary(dailyPoints),
   };
+}
+
+function getGranularity(totalDays: number): AnalysisReport["granularity"] {
+  if (totalDays <= DAILY_GRANULARITY_MAX_DAYS) {
+    return "day";
+  }
+
+  if (totalDays <= WEEKLY_GRANULARITY_MAX_DAYS) {
+    return "week";
+  }
+
+  return "month";
 }
 
 function createDailyPoints(
@@ -57,6 +72,10 @@ function createDailyPoints(
   startDate: string,
   endDate: string,
 ): DailyPoint[] {
+  if (startDate > endDate) {
+    throw new Error("分析期間の開始日は終了日以前である必要があります");
+  }
+
   const caloriesByDate = new Map(
     source.dailyCalories.map((record) => [record.date, record.calories]),
   );
@@ -97,27 +116,47 @@ function createWeeklyPoints(points: DailyPoint[]): AnalysisChartPoint[] {
   const weeks: AnalysisChartPoint[] = [];
 
   for (let index = 0; index < points.length; index += DAYS_PER_WEEK) {
-    const week = points.slice(index, index + DAYS_PER_WEEK);
-    const startDate = week[0].date;
-    const endDate = week[week.length - 1].date;
-
-    weeks.push({
-      key: startDate,
-      label: `${formatMonthDay(startDate)}〜${formatMonthDay(endDate)}`,
-      startDate,
-      endDate,
-      calories: averageRecorded(week.map((point) => point.calories)),
-      weightKg: averageRecorded(week.map((point) => point.weightKg)),
-    });
+    weeks.push(
+      createAggregatePoint(points.slice(index, index + DAYS_PER_WEEK)),
+    );
   }
 
   return weeks;
 }
 
-function createSummary(
+function createMonthlyPoints(points: DailyPoint[]): AnalysisChartPoint[] {
+  const months = new Map<string, DailyPoint[]>();
+
+  for (const point of points) {
+    const monthKey = point.date.slice(0, 7);
+    const month = months.get(monthKey) ?? [];
+    month.push(point);
+    months.set(monthKey, month);
+  }
+
+  return [...months.values()].map((month) =>
+    createAggregatePoint(month, formatYearMonth(month[0].date)),
+  );
+}
+
+function createAggregatePoint(
   points: DailyPoint[],
-  periodWeeks: AnalysisPeriodWeeks,
-): AnalysisSummary {
+  label?: string,
+): AnalysisChartPoint {
+  const startDate = points[0].date;
+  const endDate = points[points.length - 1].date;
+
+  return {
+    key: startDate,
+    label: label ?? `${formatMonthDay(startDate)}〜${formatMonthDay(endDate)}`,
+    startDate,
+    endDate,
+    calories: averageRecorded(points.map((point) => point.calories)),
+    weightKg: averageRecorded(points.map((point) => point.weightKg)),
+  };
+}
+
+function createSummary(points: DailyPoint[]): AnalysisSummary {
   const caloriePoints = points.filter(
     (point): point is DailyPoint & { calories: number } =>
       point.calories !== null,
@@ -134,7 +173,7 @@ function createSummary(
       ? weightPoints[weightPoints.length - 1].weightKg -
         weightPoints[0].weightKg
       : null;
-  const estimate = estimateExpenditure(points, weightPoints, periodWeeks);
+  const estimate = estimateExpenditure(points, weightPoints);
 
   return {
     averageCalories,
@@ -150,12 +189,11 @@ function createSummary(
 function estimateExpenditure(
   points: DailyPoint[],
   weightPoints: (DailyPoint & { weightKg: number })[],
-  periodWeeks: AnalysisPeriodWeeks,
 ): {
   value: number | null;
   status: AnalysisSummary["estimatedExpenditureStatus"];
 } {
-  if (periodWeeks < MINIMUM_ESTIMATE_WEEKS) {
+  if (points.length < MINIMUM_ESTIMATE_RANGE_DAYS) {
     return { value: null, status: "notApplicable" };
   }
 
@@ -222,4 +260,9 @@ function differenceInDays(startDate: string, endDate: string): number {
 function formatMonthDay(dateKey: string): string {
   const [, month, day] = dateKey.split("-").map(Number);
   return `${month}/${day}`;
+}
+
+function formatYearMonth(dateKey: string): string {
+  const [year, month] = dateKey.split("-").map(Number);
+  return `${year}/${month}`;
 }
