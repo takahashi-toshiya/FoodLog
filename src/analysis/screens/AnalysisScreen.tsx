@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AnalysisDateRangeSelector } from "@/analysis/components/AnalysisDateRangeSelector";
 import { AnalysisSummary } from "@/analysis/components/AnalysisSummary";
 import { CalorieWeightChart } from "@/analysis/components/CalorieWeightChart";
 import {
@@ -12,6 +11,7 @@ import {
 import type { AnalysisRepository } from "@/analysis/storage/AnalysisRepository";
 import type { AnalysisReport } from "@/analysis/types/analysis";
 import { DatePickerModal } from "@/meals/components/DatePickerModal";
+import { DateRangeSelector } from "@/shared/components/DateRangeSelector";
 import { colors } from "@/shared/theme/colors";
 import { toDateKey } from "@/shared/utils/date";
 
@@ -101,7 +101,8 @@ export function AnalysisScreen({
       </View>
 
       <View style={styles.periodContainer}>
-        <AnalysisDateRangeSelector
+        <DateRangeSelector
+          accessibilityLabelPrefix="分析期間"
           endDate={dateRange.endDate}
           onSelectEndDate={() => setActiveDateField("end")}
           onSelectStartDate={() => setActiveDateField("start")}

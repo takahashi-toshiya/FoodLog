@@ -11,6 +11,7 @@ type SettingsScreenProps = {
   repository: NutritionGoalRepository;
   refreshToken?: number;
   onEditGoal: () => void;
+  onExportCsv: () => void;
 };
 
 const GOAL_ROWS = [
@@ -24,6 +25,7 @@ export function SettingsScreen({
   repository,
   refreshToken,
   onEditGoal,
+  onExportCsv,
 }: SettingsScreenProps) {
   const [goal, setGoal] = useState<NutritionGoal | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -91,16 +93,21 @@ export function SettingsScreen({
           </View>
 
           <Text style={styles.sectionTitle}>データ</Text>
-          <View accessibilityLabel="CSV書き出しは準備中" style={styles.navCard}>
+          <Pressable
+            accessibilityLabel="CSV書き出し画面を開く"
+            accessibilityRole="button"
+            onPress={onExportCsv}
+            style={styles.navCard}
+          >
             <Text style={styles.navIcon}>⇩</Text>
             <View style={styles.navContent}>
               <Text style={styles.navTitle}>CSVを書き出す</Text>
               <Text style={styles.navDescription}>
-                期間を選んで食事明細を保存（準備中）
+                期間を選んで日別の記録を保存
               </Text>
             </View>
             <Text style={styles.navArrow}>›</Text>
-          </View>
+          </Pressable>
 
           <Text style={styles.privacyText}>
             データは端末内に保存し、外部へ自動送信しません。

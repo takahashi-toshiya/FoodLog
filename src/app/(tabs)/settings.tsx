@@ -20,6 +20,7 @@ export default function SettingsRoute() {
   return (
     <SettingsScreen
       onEditGoal={() => router.push("/edit-nutrition-goal")}
+      onExportCsv={() => router.push("/export-csv")}
       refreshToken={refreshToken}
       repository={repository}
     />

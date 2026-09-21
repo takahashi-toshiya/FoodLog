@@ -21,6 +21,10 @@ export default function RootLayout() {
           options={{ animation: "slide_from_bottom", presentation: "modal" }}
         />
         <Stack.Screen
+          name="export-csv"
+          options={{ animation: "slide_from_bottom", presentation: "modal" }}
+        />
+        <Stack.Screen
           name="edit-meal"
           options={{ animation: "slide_from_bottom", presentation: "modal" }}
         />

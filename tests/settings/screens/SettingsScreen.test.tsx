@@ -22,7 +22,11 @@ describe("設定画面", () => {
 
   it("現在の目標値とデータ保存方針を表示する", async () => {
     const { getByText } = await render(
-      <SettingsScreen onEditGoal={jest.fn()} repository={createRepository()} />,
+      <SettingsScreen
+        onEditGoal={jest.fn()}
+        onExportCsv={jest.fn()}
+        repository={createRepository()}
+      />,
     );
 
     await waitFor(() => expect(getByText("1,975 kcal")).toBeTruthy());
@@ -38,6 +42,7 @@ describe("設定画面", () => {
     const { getByLabelText, getByText } = await render(
       <SettingsScreen
         onEditGoal={onEditGoal}
+        onExportCsv={jest.fn()}
         repository={createRepository()}
       />,
     );
@@ -46,5 +51,21 @@ describe("設定画面", () => {
     await fireEvent.press(getByLabelText("目標を編集"));
 
     expect(onEditGoal).toHaveBeenCalledTimes(1);
+  });
+
+  it("CSV書き出しを親へ通知する", async () => {
+    const onExportCsv = jest.fn();
+    const { getByLabelText, getByText } = await render(
+      <SettingsScreen
+        onEditGoal={jest.fn()}
+        onExportCsv={onExportCsv}
+        repository={createRepository()}
+      />,
+    );
+
+    await waitFor(() => expect(getByText("1,975 kcal")).toBeTruthy());
+    await fireEvent.press(getByLabelText("CSV書き出し画面を開く"));
+
+    expect(onExportCsv).toHaveBeenCalledTimes(1);
   });
 });
