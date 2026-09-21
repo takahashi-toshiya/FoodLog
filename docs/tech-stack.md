@@ -12,6 +12,8 @@
 - Expo Router
 - Expo SQLite
 - Expo Crypto
+- Expo FileSystem
+- Expo Sharing
 - TypeScript
 - npm
 

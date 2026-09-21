@@ -2,30 +2,32 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { colors } from "@/shared/theme/colors";
 
-type AnalysisDateRangeSelectorProps = {
+type DateRangeSelectorProps = {
+  accessibilityLabelPrefix: string;
   startDate: string;
   endDate: string;
   onSelectStartDate: () => void;
   onSelectEndDate: () => void;
 };
 
-export function AnalysisDateRangeSelector({
+export function DateRangeSelector({
+  accessibilityLabelPrefix,
   startDate,
   endDate,
   onSelectStartDate,
   onSelectEndDate,
-}: AnalysisDateRangeSelectorProps) {
+}: DateRangeSelectorProps) {
   return (
     <View style={styles.container}>
       <DateButton
-        accessibilityLabel="分析期間の開始日を選択"
+        accessibilityLabel={`${accessibilityLabelPrefix}の開始日を選択`}
         date={startDate}
         label="開始日"
         onPress={onSelectStartDate}
       />
       <Text style={styles.separator}>〜</Text>
       <DateButton
-        accessibilityLabel="分析期間の終了日を選択"
+        accessibilityLabel={`${accessibilityLabelPrefix}の終了日を選択`}
         date={endDate}
         label="終了日"
         onPress={onSelectEndDate}
@@ -50,6 +52,7 @@ function DateButton({
   return (
     <Pressable
       accessibilityLabel={accessibilityLabel}
+      accessibilityRole="button"
       onPress={onPress}
       style={styles.dateButton}
     >
