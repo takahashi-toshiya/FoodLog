@@ -17,6 +17,20 @@
 - TypeScript
 - npm
 
+## バックエンド
+
+- NestJS
+- TypeScript
+- Prisma
+- PostgreSQL
+- npm
+
+実装コードは`backend/`へ配置する。
+
+## インフラ
+
+構成は未決定。REST APIをローカルで実装・検証した後に決定し、AWSなどのインフラ定義は`infra/`へ配置する。
+
 ## テスト
 
 - Jest

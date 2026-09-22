@@ -4,8 +4,10 @@
 
 ## 基本方針
 
-- アプリケーションコードは `src/` に置く
-- `src/` は技術の種類ではなく、食事や設定などの機能を中心に分ける
+- React Nativeアプリは `apps/food-log/` に置く
+- アプリケーションコードは `apps/food-log/src/` に置く
+- `apps/food-log/src/` は技術の種類ではなく、食事や設定などの機能を中心に分ける
+- バックエンドは `backend/`、インフラ定義は `infra/` に置き、アプリへ混在させない
 - Expo Routerのルートファイルは薄く保ち、画面の本体を機能ディレクトリへ置く
 - 機能だけで使用するコードは、その機能内に置く
 - 複数の機能から実際に使われるコードだけを `shared/` へ移す
@@ -15,38 +17,43 @@
 
 ```text
 FoodLog/
-├── assets/                  # 画像、アイコン、フォントなどの静的ファイル
+├── apps/
+│   └── food-log/            # Expo・React Nativeアプリ
+│       ├── assets/          # 画像、アイコン、フォントなどの静的ファイル
+│       ├── src/
+│       │   ├── app/         # Expo Routerのルート定義
+│       │   ├── meals/       # 食事記録機能
+│       │   ├── foods/       # よく使う食品とセット機能
+│       │   ├── settings/    # 目標値などの設定機能
+│       │   ├── today/       # 日付選択と日次記録画面の構成
+│       │   ├── weights/     # 体重記録機能
+│       │   ├── analysis/    # 食事量と体重変化の期間分析
+│       │   ├── csv-export/  # 日別記録のCSV生成とファイル共有
+│       │   └── shared/      # 複数機能で共有するコード
+│       ├── tests/           # アプリコードに対応するテスト
+│       ├── app.json
+│       └── package.json
+├── backend/                 # REST API（技術選定後に実装）
+├── infra/                   # AWSなどのインフラ定義（構成決定後に実装）
 ├── docs/                    # 要件、技術方針、規約、実装計画
-│   └── plans/               # 機能単位の実装計画
+│   └── plans/
+│       ├── apps/
+│       │   └── food-log/    # FoodLogアプリの実装計画
+│       ├── backend/         # バックエンドの実装計画
+│       └── infra/           # ローカル環境・AWSの実装計画
 ├── prototype/               # ブラウザ版UIプロトタイプ
-├── src/
-│   ├── app/                 # Expo Routerのルート定義
-│   ├── meals/               # 食事記録機能
-│   │   ├── components/      # 食事機能内の表示コンポーネント
-│   │   ├── screens/         # 食事機能の画面本体
-│   │   ├── types/           # 食事機能で共有する型定義
-│   │   ├── constants/       # 食事区分などの固定値
-│   │   ├── services/        # 食事機能固有のビジネスロジック
-│   │   ├── storage/         # 食事データの保存境界と実装
-│   │   └── fixtures/        # 開発・テスト用の仮データ
-│   ├── foods/               # よく使う食品とセット機能
-│   ├── settings/            # 目標値などの設定機能
-│   ├── today/               # 日付選択と日次記録画面の構成
-│   ├── weights/             # 体重記録機能
-│   ├── analysis/            # 食事量と体重変化の期間分析
-│   ├── csv-export/          # 日別記録のCSV生成とファイル共有
-│   └── shared/              # 複数機能で共有するコード
-│       ├── components/      # 共通UI
-│       ├── theme/           # 色、余白、文字スタイル
-│       └── utils/           # 日付操作など、責務が明確な汎用処理
-└── tests/                   # アプリコードに対応するテスト
+├── package.json             # リポジトリ全体の操作コマンド
+└── Makefile                 # リポジトリ全体の検証コマンド
 ```
 
-必要になっていないディレクトリは先に作らない。上記は配置ルールであり、空ディレクトリを維持するためのものではない。
+`backend/`と`infra/`は配置先だけを先に確保し、技術構成が決まるまでは実装ファイルを追加しない。
+`docs/plans/apps/food-log/`内に記載する`src/`、`tests/`などのアプリ内部パスは、`apps/food-log/`を基準とする。
+
+各領域の内部には、必要になっていないサブディレクトリを先に作らない。上記は配置ルールであり、将来の実装構造を固定するものではない。
 
 ## 各領域の責務
 
-### `src/app/`
+### `apps/food-log/src/app/`
 
 - Expo Routerのルート、レイアウト、画面遷移を定義する
 - URLやルートパラメータをアプリ内の画面へ渡す
@@ -66,7 +73,7 @@ FoodLog/
 
 すべての機能が同じサブディレクトリを持つ必要はない。コードが増え、分類が必要になったものだけ作成する。
 
-### `src/shared/`
+### `apps/food-log/src/shared/`
 
 - 2つ以上の機能から実際に利用されるコードを置く
 - 将来使いそうという理由だけで機能固有のコードを移さない
@@ -95,22 +102,22 @@ API通信と端末内の保存処理は、それぞれ `api/` と `storage/` に
 
 機能固有の処理を `shared/utils/` へ移さず、対応する機能の `services/` に置く。
 
-### `tests/`
+### `apps/food-log/tests/`
 
 - 原則として `src/` の機能構成に対応させる
-- 例：`src/meals/services/nutrition.ts` に対するテストは `tests/meals/services/nutrition.test.ts`
+- 例：`apps/food-log/src/meals/services/nutrition.ts` に対するテストは `apps/food-log/tests/meals/services/nutrition.test.ts`
 - フレームワーク上、実装の近くに置く方が明確な場合はコロケーションも認める
 
 ## 依存関係の方向
 
 ```text
-src/app
+apps/food-log/src/app
   ↓
 機能のscreens
   ↓
 機能のcomponents / services / storage
   ↓
-src/shared
+apps/food-log/src/shared
 ```
 
 - `shared/` から特定の機能へ依存しない
