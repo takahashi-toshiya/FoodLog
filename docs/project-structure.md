@@ -39,8 +39,8 @@ FoodLog/
 │   └── plans/
 │       ├── apps/
 │       │   └── food-log/    # FoodLogアプリの実装計画
-│       ├── backend/         # バックエンドの実装計画
-│       └── infra/           # ローカル環境・AWSの実装計画
+│       ├── backend/         # バックエンド・ローカルDocker環境の実装計画
+│       └── infra/           # AWSなどの本番インフラ実装計画
 ├── prototype/               # ブラウザ版UIプロトタイプ
 ├── package.json             # リポジトリ全体の操作コマンド
 └── Makefile                 # リポジトリ全体の検証コマンド
