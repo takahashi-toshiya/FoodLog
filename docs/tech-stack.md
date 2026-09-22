@@ -28,6 +28,7 @@
 - TypeScript
 - Prisma
 - PostgreSQL
+- Docker / Docker Compose（ローカル開発環境）
 - npm
 
 実装コードは`backend/`へ配置する。

@@ -22,6 +22,13 @@ describe('AppController（E2E）', () => {
       .expect('Hello World!');
   });
 
+  it('GET /healthでAPIとDBの正常状態を返す', () => {
+    return request(app.getHttpServer()).get('/health').expect(200).expect({
+      status: 'ok',
+      database: 'ok',
+    });
+  });
+
   afterEach(async () => {
     await app.close();
   });

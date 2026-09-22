@@ -208,7 +208,7 @@ tests/
 - プロトタイプの今日画面と情報構成が一致している
 - 記録あり・記録なしの状態を確認できる
 - 集計処理がUIから分離され、自動テストで検証されている
-- `make lint`、`make typecheck`、`make test`、`make build` が成功する
+- `npm run lint`、`npm run typecheck`、`npm run test`、`npm run build` が成功する
 - Expo Goで実機確認できる
 - 対象外の機能が実装に混ざっていない
 

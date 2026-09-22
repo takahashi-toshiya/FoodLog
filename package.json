@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "setup": "npm run setup:app && npm run setup:prototype",
+    "setup": "npm run setup:app && npm run setup:backend && npm run setup:prototype",
     "setup:app": "npm --prefix apps/food-log ci",
+    "setup:backend": "npm --prefix backend ci",
     "setup:prototype": "npm --prefix prototype ci",
     "dev": "npm --prefix apps/food-log run dev",
     "start": "npm --prefix apps/food-log run start",
@@ -19,6 +20,9 @@
     "typecheck": "npm --prefix apps/food-log run typecheck",
     "test": "npm --prefix apps/food-log test",
     "test:watch": "npm --prefix apps/food-log run test:watch",
-    "test:prototype": "npm --prefix prototype test"
+    "test:prototype": "npm --prefix prototype test",
+    "backend:start": "docker compose -f backend/compose.yaml up --build --detach",
+    "backend:stop": "docker compose -f backend/compose.yaml down",
+    "backend:logs": "docker compose -f backend/compose.yaml logs --follow api"
   }
 }

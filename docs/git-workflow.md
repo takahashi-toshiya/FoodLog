@@ -27,9 +27,9 @@ git switch -c feat/example
 実装後は、変更内容に応じた検証を行います。
 
 ```bash
-make lint
-make typecheck
-make test
+npm run lint
+npm run typecheck
+npm run test
 ```
 
 検証が完了したら、作業ブランチをpushしてGitHubでPull Requestを作成します。
