@@ -2,7 +2,15 @@
 
 食事、身体、トレーニングの記録を統合し、ボディメイクを総合的に管理するアプリを目指すプロジェクトです。
 
-現在は、Expoを使用したReact Nativeアプリとブラウザ版UIプロトタイプを管理しています。
+現在は、Expoを使用したReact Nativeアプリとブラウザ版UIプロトタイプを管理しています。バックエンドとインフラは、今後実装するための配置先だけを用意しています。
+
+## 構成
+
+- `apps/food-log/` — Expo・React Nativeアプリ
+- `backend/` — REST API（未実装）
+- `infra/` — AWSなどのインフラ定義（未実装）
+- `docs/` — プロジェクト全体の資料
+- `prototype/` — ブラウザ版UIプロトタイプ
 
 ## ドキュメント
 
@@ -28,8 +36,10 @@ export PATH="/opt/homebrew/opt/node@22/bin:$PATH"
 ### セットアップ
 
 ```bash
-npm ci
+npm run setup
 ```
+
+FoodLogアプリだけをセットアップする場合は、`npm run setup:app`を使用します。
 
 ### 起動方法
 

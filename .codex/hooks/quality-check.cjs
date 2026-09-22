@@ -3,7 +3,7 @@ const { existsSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
 const { execFileSync } = require("node:child_process");
 
-const SOURCE_PATHS = ["src", "tests"];
+const SOURCE_PATHS = ["apps/food-log/src", "apps/food-log/tests"];
 const CHECKS = [
   ["format", ["run", "format"]],
   ["lint", ["run", "lint"]],

@@ -4,12 +4,17 @@
 
 ## プロジェクト構成
 
-- `src/`：Expo・React Nativeアプリの実装
-- `tests/`：アプリコードに対応する自動テスト
-- `assets/`：画像、アイコン、フォントなどの静的ファイル
+- `apps/food-log/`：Expo・React Nativeアプリ
+  - `src/`：アプリの実装
+  - `tests/`：アプリコードに対応する自動テスト
+  - `assets/`：画像、アイコン、フォントなどの静的ファイル
+- `backend/`：REST API。技術選定後に実装する
+- `infra/`：AWSなどのインフラ定義。インフラ構成決定後に実装する
 - `docs/`：要件、技術方針、開発ルール
 - `docs/component-map.md`：画面ごとのUIコンポーネント構成
-- `docs/plans/`：機能単位の実装計画
+- `docs/plans/apps/food-log/`：FoodLogアプリの実装計画
+- `docs/plans/backend/`：バックエンドの実装計画
+- `docs/plans/infra/`：ローカル環境・AWSなどのインフラ実装計画
 - `prototype/`：ブラウザ版UIプロトタイプ。製品コードからは使用しない
 - `.codex/`：CodexのHookなど、AI開発環境の設定
 - `.github/`：Pull RequestテンプレートやGitHub ActionsなどのGitHub設定
@@ -21,11 +26,13 @@
 - 要件やMVP範囲を確認・変更する：`docs/requirements.md`
 - 技術選定、ライブラリ追加、開発環境を変更する：`docs/tech-stack.md`
 - SQLiteのスキーマや保存方針を確認・変更する：`docs/database-design.md`
-- コードを実装・変更する：`docs/coding-guidelines.md`
+- アプリコードを実装・変更する：`docs/coding-guidelines.md`
 - ディレクトリやファイルの配置を決める：`docs/project-structure.md`
 - テストを追加・変更する：`docs/testing-guidelines.md`
 - ブランチ、コミット、Pull Requestを操作する：`docs/git-workflow.md`
-- 機能を実装する：`docs/requirements.md`と、対応する`docs/plans/`内の実装計画
+- FoodLogの機能を実装する：`docs/requirements.md`と、対応する`docs/plans/apps/food-log/`内の実装計画
+- バックエンドを実装する：`docs/tech-stack.md`と、対応する`docs/plans/backend/`内の実装計画
+- DockerやAWSを変更する：`docs/tech-stack.md`と、対応する`docs/plans/infra/`内の実装計画
 - UIを実装・変更する：対応する実装計画と`prototype/`の該当画面
 - UIの構成を確認・変更する：`docs/component-map.md`
 

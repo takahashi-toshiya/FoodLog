@@ -12,7 +12,7 @@
 - コーディング規約：`docs/coding-guidelines.md`
 - ディレクトリ構成：`docs/project-structure.md`
 - テスト方針：`docs/testing-guidelines.md`
-- 既存画面計画：`docs/plans/food-library.md`
+- 既存画面計画：`docs/plans/apps/food-log/food-library.md`
 
 ## 今回の実装範囲
 
