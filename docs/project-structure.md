@@ -33,20 +33,19 @@ FoodLog/
 │       ├── tests/           # アプリコードに対応するテスト
 │       ├── app.json
 │       └── package.json
-├── backend/                 # REST API（技術選定後に実装）
+├── backend/                 # NestJS REST APIとローカルDocker環境
 ├── infra/                   # AWSなどのインフラ定義（構成決定後に実装）
 ├── docs/                    # 要件、技術方針、規約、実装計画
 │   └── plans/
 │       ├── apps/
 │       │   └── food-log/    # FoodLogアプリの実装計画
-│       ├── backend/         # バックエンドの実装計画
-│       └── infra/           # ローカル環境・AWSの実装計画
+│       ├── backend/         # バックエンド・ローカルDocker環境の実装計画
+│       └── infra/           # AWSなどの本番インフラ実装計画
 ├── prototype/               # ブラウザ版UIプロトタイプ
-├── package.json             # リポジトリ全体の操作コマンド
-└── Makefile                 # リポジトリ全体の検証コマンド
+└── package.json             # リポジトリ全体の操作コマンド
 ```
 
-`backend/`と`infra/`は配置先だけを先に確保し、技術構成が決まるまでは実装ファイルを追加しない。
+`backend/`にはNestJS REST APIと、API・PostgreSQLを起動するローカルDocker環境を置く。`infra/`は構成が決まるまで配置先だけを確保する。
 `docs/plans/apps/food-log/`内に記載する`src/`、`tests/`などのアプリ内部パスは、`apps/food-log/`を基準とする。
 
 各領域の内部には、必要になっていないサブディレクトリを先に作らない。上記は配置ルールであり、将来の実装構造を固定するものではない。

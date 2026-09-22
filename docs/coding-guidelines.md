@@ -98,10 +98,10 @@
 実装前に、対象機能の実装計画と関連ドキュメントを確認する。実装後は次を実行する。
 
 ```bash
-make lint
-make typecheck
-make test
-make build
+npm run lint
+npm run typecheck
+npm run test
+npm run build
 ```
 
 UI変更はExpo Goでも確認する。

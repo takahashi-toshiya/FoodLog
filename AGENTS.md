@@ -13,8 +13,8 @@
 - `docs/`：要件、技術方針、開発ルール
 - `docs/component-map.md`：画面ごとのUIコンポーネント構成
 - `docs/plans/apps/food-log/`：FoodLogアプリの実装計画
-- `docs/plans/backend/`：バックエンドの実装計画
-- `docs/plans/infra/`：ローカル環境・AWSなどのインフラ実装計画
+- `docs/plans/backend/`：バックエンドとローカルDocker環境の実装計画
+- `docs/plans/infra/`：AWSなどの本番インフラ実装計画
 - `prototype/`：ブラウザ版UIプロトタイプ。製品コードからは使用しない
 - `.codex/`：CodexのHookなど、AI開発環境の設定
 - `.github/`：Pull RequestテンプレートやGitHub ActionsなどのGitHub設定
@@ -31,8 +31,8 @@
 - テストを追加・変更する：`docs/testing-guidelines.md`
 - ブランチ、コミット、Pull Requestを操作する：`docs/git-workflow.md`
 - FoodLogの機能を実装する：`docs/requirements.md`と、対応する`docs/plans/apps/food-log/`内の実装計画
-- バックエンドを実装する：`docs/tech-stack.md`と、対応する`docs/plans/backend/`内の実装計画
-- DockerやAWSを変更する：`docs/tech-stack.md`と、対応する`docs/plans/infra/`内の実装計画
+- バックエンドやローカルDocker環境を実装する：`docs/tech-stack.md`と、対応する`docs/plans/backend/`内の実装計画
+- AWSなどの本番インフラを変更する：`docs/tech-stack.md`と、対応する`docs/plans/infra/`内の実装計画
 - UIを実装・変更する：対応する実装計画と`prototype/`の該当画面
 - UIの構成を確認・変更する：`docs/component-map.md`
 

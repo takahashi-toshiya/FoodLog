@@ -138,16 +138,16 @@ E2Eテストのツールは、必要になった時点でExpoとReact Nativeの�
 実装後は、少なくとも次を実行する。
 
 ```bash
-make test
+npm run test
 ```
 
 機能全体の完了確認では、Lint、型チェック、ビルドも実行する。
 
 ```bash
-make lint
-make typecheck
-make test
-make build
+npm run lint
+npm run typecheck
+npm run test
+npm run build
 ```
 
 ## 方針の更新
