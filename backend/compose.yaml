@@ -1,0 +1,41 @@
+name: foodlog-backend
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    init: true
+    ports:
+      # ホストの3000番はUIプロトタイプが使用するため、APIは3001番で公開する。
+      - '${API_PORT:-3001}:3000'
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-foodlog}:${POSTGRES_PASSWORD:-foodlog}@postgres:5432/${POSTGRES_DB:-foodlog}?schema=public
+    volumes:
+      - .:/app
+      - backend_node_modules:/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17-alpine
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-foodlog}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-foodlog}
+      POSTGRES_DB: ${POSTGRES_DB:-foodlog}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  backend_node_modules:
+  postgres_data:
