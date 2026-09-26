@@ -10,7 +10,7 @@ describe('HealthService', () => {
     const service = new HealthService(prisma);
 
     await expect(service.check()).resolves.toEqual({
-      status: 'OK',
+      status: 'OK3',
       database: 'ok',
     });
   });
