@@ -25,7 +25,8 @@
 
 - 要件やMVP範囲を確認・変更する：`docs/requirements.md`
 - 技術選定、ライブラリ追加、開発環境を変更する：`docs/tech-stack.md`
-- SQLiteのスキーマや保存方針を確認・変更する：`docs/database-design.md`
+- データベースのスキーマや保存方針を確認・変更する：`docs/database-design.md`
+- AWS構成を確認・変更する：`docs/aws-architecture.md`
 - アプリコードを実装・変更する：`docs/coding-guidelines.md`
 - ディレクトリやファイルの配置を決める：`docs/project-structure.md`
 - テストを追加・変更する：`docs/testing-guidelines.md`

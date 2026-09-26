@@ -1,125 +1,131 @@
 # データベース設計
 
+## `users`
+
+アプリを利用するユーザーとAppleログインの識別情報を保存する。
+
+| カラム | 制約 |
+| --- | --- |
+| `id` | PRIMARY KEY |
+| `apple_user_id` | NOT NULL、UNIQUE |
+| `created_at` | NOT NULL |
+| `updated_at` | NOT NULL |
+
 ## `foods`
 
-手動登録した食品について、1回分の栄養情報を保存する。
+ユーザーが自分の食品ライブラリーへ登録した食品と、1回分の栄養情報を保存する。
 
-```sql
-CREATE TABLE foods (
-  id TEXT PRIMARY KEY NOT NULL,
-  name TEXT NOT NULL,
-  serving_amount REAL NOT NULL CHECK (serving_amount > 0),
-  serving_unit TEXT NOT NULL,
-  calories INTEGER NOT NULL CHECK (calories >= 0),
-  protein REAL NOT NULL CHECK (protein >= 0),
-  fat REAL NOT NULL CHECK (fat >= 0),
-  carbs REAL NOT NULL CHECK (carbs >= 0),
-  memo TEXT,
-  created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL
-);
-```
+| カラム | 制約 |
+| --- | --- |
+| `id` | PRIMARY KEY |
+| `user_id` | NOT NULL、FOREIGN KEY → `users.id` |
+| `name` | NOT NULL |
+| `serving_amount` | NOT NULL、0より大きい |
+| `serving_unit` | NOT NULL |
+| `calories` | NOT NULL、0以上 |
+| `protein` | NOT NULL、0以上 |
+| `fat` | NOT NULL、0以上 |
+| `carbs` | NOT NULL、0以上 |
+| `memo` | NULL可 |
+| `created_at` | NOT NULL |
+| `updated_at` | NOT NULL |
 
 ## `meal_entries`
 
-実際に食べた履歴と、記録時点の栄養情報を保存する。
+ユーザーが実際に食べた履歴と、記録時点の栄養情報を保存する。
 
-```sql
-CREATE TABLE meal_entries (
-  id TEXT PRIMARY KEY NOT NULL,
-  source_food_id TEXT,
-  recorded_date TEXT NOT NULL,
-  meal_type TEXT NOT NULL
-    CHECK (meal_type IN ('breakfast', 'lunch', 'dinner', 'snack')),
-  name TEXT NOT NULL,
-  serving_multiplier REAL NOT NULL CHECK (serving_multiplier > 0),
-  calories INTEGER NOT NULL CHECK (calories >= 0),
-  calorie_source TEXT NOT NULL
-    CHECK (calorie_source IN ('calculated', 'manual')),
-  protein REAL NOT NULL CHECK (protein >= 0),
-  fat REAL NOT NULL CHECK (fat >= 0),
-  carbs REAL NOT NULL CHECK (carbs >= 0),
-  memo TEXT,
-  created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL,
-  FOREIGN KEY (source_food_id)
-    REFERENCES foods(id)
-    ON DELETE SET NULL
-);
-
-CREATE INDEX meal_entries_recorded_date_index
-  ON meal_entries (recorded_date);
-
-CREATE INDEX meal_entries_source_food_id_index
-  ON meal_entries (source_food_id);
-```
+| カラム | 制約 |
+| --- | --- |
+| `id` | PRIMARY KEY |
+| `user_id` | NOT NULL、FOREIGN KEY → `users.id` |
+| `source_food_id` | NULL可、FOREIGN KEY → `foods.id` |
+| `recorded_date` | NOT NULL |
+| `meal_type` | NOT NULL、`breakfast` / `lunch` / `dinner` / `snack` |
+| `name` | NOT NULL |
+| `serving_multiplier` | NOT NULL、0より大きい |
+| `calories` | NOT NULL、0以上 |
+| `calorie_source` | NOT NULL、`calculated` / `manual` |
+| `protein` | NOT NULL、0以上 |
+| `fat` | NOT NULL、0以上 |
+| `carbs` | NOT NULL、0以上 |
+| `memo` | NULL可 |
+| `created_at` | NOT NULL |
+| `updated_at` | NOT NULL |
 
 ## `nutrition_goals`
 
-カロリーとPFCの目標値を、適用開始日ごとの履歴として保存する。
+ユーザーのカロリーとPFCの目標値を、適用開始日ごとの履歴として保存する。
 
-```sql
-CREATE TABLE nutrition_goals (
-  id TEXT PRIMARY KEY NOT NULL,
-  effective_from TEXT NOT NULL UNIQUE,
-  calories INTEGER NOT NULL CHECK (calories > 0),
-  protein REAL NOT NULL CHECK (protein >= 0),
-  fat REAL NOT NULL CHECK (fat >= 0),
-  carbs REAL NOT NULL CHECK (carbs >= 0),
-  created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL
-);
-```
+| カラム | 制約 |
+| --- | --- |
+| `id` | PRIMARY KEY |
+| `user_id` | NOT NULL、FOREIGN KEY → `users.id` |
+| `effective_from` | NOT NULL |
+| `calories` | NOT NULL、0より大きい |
+| `protein` | NOT NULL、0以上 |
+| `fat` | NOT NULL、0以上 |
+| `carbs` | NOT NULL、0以上 |
+| `created_at` | NOT NULL |
+| `updated_at` | NOT NULL |
+
+`user_id`と`effective_from`の組み合わせを一意にする。
 
 ## `food_sets`
 
-複数の食品をまとめて記録するセットの名前を保存する。
+ユーザーが複数の食品をまとめて記録するために作成したセットを保存する。
 
-```sql
-CREATE TABLE food_sets (
-  id TEXT PRIMARY KEY NOT NULL,
-  name TEXT NOT NULL,
-  created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL
-);
-```
+| カラム | 制約 |
+| --- | --- |
+| `id` | PRIMARY KEY |
+| `user_id` | NOT NULL、FOREIGN KEY → `users.id` |
+| `name` | NOT NULL |
+| `created_at` | NOT NULL |
+| `updated_at` | NOT NULL |
 
 ## `food_set_items`
 
-食品セットとライブラリ食品の関連、摂取倍率、表示順を保存する。
+食品セットに含まれる食品、摂取倍率、表示順を保存する。
 
-```sql
-CREATE TABLE food_set_items (
-  id TEXT PRIMARY KEY NOT NULL,
-  food_set_id TEXT NOT NULL,
-  food_id TEXT NOT NULL,
-  serving_multiplier REAL NOT NULL CHECK (serving_multiplier > 0),
-  sort_order INTEGER NOT NULL CHECK (sort_order >= 0),
-  created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL,
-  FOREIGN KEY (food_set_id)
-    REFERENCES food_sets(id)
-    ON DELETE CASCADE,
-  FOREIGN KEY (food_id)
-    REFERENCES foods(id)
-    ON DELETE RESTRICT,
-  UNIQUE (food_set_id, food_id)
-);
+| カラム | 制約 |
+| --- | --- |
+| `id` | PRIMARY KEY |
+| `food_set_id` | NOT NULL、FOREIGN KEY → `food_sets.id` |
+| `food_id` | NOT NULL、FOREIGN KEY → `foods.id` |
+| `serving_multiplier` | NOT NULL、0より大きい |
+| `sort_order` | NOT NULL、0以上 |
+| `created_at` | NOT NULL |
+| `updated_at` | NOT NULL |
 
-CREATE INDEX food_set_items_food_id_index
-  ON food_set_items (food_id);
-```
+`food_set_id`と`food_id`の組み合わせを一意にする。
 
 ## `weight_records`
 
-日付ごとの体重をkg単位で保存する。
+ユーザーの日付ごとの体重をkg単位で保存する。
 
-```sql
-CREATE TABLE weight_records (
-  id TEXT PRIMARY KEY NOT NULL,
-  recorded_date TEXT NOT NULL UNIQUE,
-  weight_kg REAL NOT NULL CHECK (weight_kg > 0),
-  created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL
-);
-```
+| カラム | 制約 |
+| --- | --- |
+| `id` | PRIMARY KEY |
+| `user_id` | NOT NULL、FOREIGN KEY → `users.id` |
+| `recorded_date` | NOT NULL |
+| `weight_kg` | NOT NULL、0より大きい |
+| `created_at` | NOT NULL |
+| `updated_at` | NOT NULL |
+
+`user_id`と`recorded_date`の組み合わせを一意にする。
+
+## `food_catalog_items`
+
+すべてのユーザーが検索できる共通の食品と、1回分の栄養情報を保存する。
+
+| カラム | 制約 |
+| --- | --- |
+| `id` | PRIMARY KEY |
+| `name` | NOT NULL |
+| `serving_amount` | NOT NULL、0より大きい |
+| `serving_unit` | NOT NULL |
+| `calories` | NOT NULL、0以上 |
+| `protein` | NOT NULL、0以上 |
+| `fat` | NOT NULL、0以上 |
+| `carbs` | NOT NULL、0以上 |
+| `created_at` | NOT NULL |
+| `updated_at` | NOT NULL |
