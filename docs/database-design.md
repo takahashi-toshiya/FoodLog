@@ -38,7 +38,7 @@
 | --- | --- |
 | `id` | PRIMARY KEY |
 | `user_id` | NOT NULL、FOREIGN KEY → `users.id` |
-| `source_food_id` | NULL可、FOREIGN KEY → `foods.id` |
+| `food_id` | NULL可、FOREIGN KEY → `foods.id` |
 | `recorded_date` | NOT NULL |
 | `meal_type` | NOT NULL、`breakfast` / `lunch` / `dinner` / `snack` |
 | `name` | NOT NULL |

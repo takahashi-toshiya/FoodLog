@@ -1,0 +1,67 @@
+model Food {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  name          String
+  servingAmount Decimal  @map("serving_amount") @db.Decimal(10, 2)
+  servingUnit   String   @map("serving_unit")
+  calories      Int
+  protein       Decimal  @db.Decimal(10, 2)
+  fat           Decimal  @db.Decimal(10, 2)
+  carbs         Decimal  @db.Decimal(10, 2)
+  memo          String?
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mealEntries  MealEntry[]
+  foodSetItems FoodSetItem[]
+
+  @@index([userId])
+  @@map("foods")
+}
+
+model FoodSet {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  name      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items FoodSetItem[]
+
+  @@index([userId])
+  @@map("food_sets")
+}
+
+model FoodSetItem {
+  id                String   @id @default(uuid()) @db.Uuid
+  foodSetId         String   @map("food_set_id") @db.Uuid
+  foodId            String   @map("food_id") @db.Uuid
+  servingMultiplier Decimal  @map("serving_multiplier") @db.Decimal(8, 4)
+  sortOrder         Int      @map("sort_order")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  foodSet FoodSet @relation(fields: [foodSetId], references: [id], onDelete: Cascade)
+  food    Food    @relation(fields: [foodId], references: [id], onDelete: Restrict)
+
+  @@unique([foodSetId, foodId])
+  @@index([foodId])
+  @@map("food_set_items")
+}
+
+model FoodCatalogItem {
+  id            String   @id @default(uuid()) @db.Uuid
+  name          String
+  servingAmount Decimal  @map("serving_amount") @db.Decimal(10, 2)
+  servingUnit   String   @map("serving_unit")
+  calories      Int
+  protein       Decimal  @db.Decimal(10, 2)
+  fat           Decimal  @db.Decimal(10, 2)
+  carbs         Decimal  @db.Decimal(10, 2)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("food_catalog_items")
+}
