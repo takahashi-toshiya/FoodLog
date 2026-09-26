@@ -2,7 +2,7 @@ import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
 
 export type HealthStatus = {
-  status: 'ok';
+  status: 'ok1';
   database: 'ok';
 };
 
@@ -15,7 +15,7 @@ export class HealthService {
       await this.prisma.$queryRaw`SELECT 1`;
 
       return {
-        status: 'ok',
+        status: 'ok1',
         database: 'ok',
       };
     } catch {
