@@ -1,0 +1,40 @@
+enum MealType {
+  breakfast
+  lunch
+  dinner
+  snack
+
+  @@map("meal_type")
+}
+
+enum CalorieSource {
+  calculated
+  manual
+
+  @@map("calorie_source")
+}
+
+model MealEntry {
+  id                String        @id @default(uuid()) @db.Uuid
+  userId            String        @map("user_id") @db.Uuid
+  foodId            String?       @map("food_id") @db.Uuid
+  recordedDate      DateTime      @map("recorded_date") @db.Date
+  mealType          MealType      @map("meal_type")
+  name              String
+  servingMultiplier Decimal       @map("serving_multiplier") @db.Decimal(8, 4)
+  calories          Int
+  calorieSource     CalorieSource @map("calorie_source")
+  protein           Decimal       @db.Decimal(10, 2)
+  fat               Decimal       @db.Decimal(10, 2)
+  carbs             Decimal       @db.Decimal(10, 2)
+  memo              String?
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  food Food? @relation(fields: [foodId], references: [id], onDelete: SetNull)
+
+  @@index([userId, recordedDate])
+  @@index([foodId])
+  @@map("meal_entries")
+}
